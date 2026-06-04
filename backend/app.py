@@ -22,9 +22,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS # 1. Burayı ekle
 
 app = Flask(__name__)
-CORS(app) # 2. app'i tanımladıktan hemen sonra bu satırı ekle
-
-# ... senin kodlarının geri kalanı ...
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # .env dosyasını sisteme dahil ediyoruz
 load_dotenv()
