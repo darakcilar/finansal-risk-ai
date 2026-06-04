@@ -39,8 +39,6 @@ from model_explainer import (
 # VERİTABANI MODÜLÜ
 from db_logger import init_db, log_prediction
 
-app = Flask(__name__)
-
 # Sistemin başında veritabanını ve tabloları hazırla
 init_db()
 
