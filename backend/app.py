@@ -42,6 +42,12 @@ init_db()
 # ---------------------------------------------------------------------------
 # Load model at startup
 # ---------------------------------------------------------------------------
+
+from flask_cors import CORS # En üste ekle
+
+app = Flask(__name__)
+CORS(app) # Bunu mutlaka app = Flask(__name__) satırından hemen sonra ekle
+
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "advanced_risk_model.joblib")
 
 print(f"📦 Model yükleniyor: {MODEL_PATH}")

@@ -13,7 +13,7 @@ import html2pdf from 'html2pdf.js'
 import PeerComparison from './components/PeerComparison';
 
 // Backend API adresi
-const API_BASE = '/api'
+const API_BASE = 'https://finansal-risk-ai.onrender.com/api'
 
 function App() {
   const [result, setResult] = useState(null)
