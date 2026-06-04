@@ -140,9 +140,10 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
     customer received their risk score.
     KUSURSUZ SÜRÜM: xai_advice ve summary alanları tamamen birbirinden ayrılmıştır.
     """
+
     explanations = []
     risk_prob = float(prediction_proba)
-
+    recommendations = ["Bu bir test tavsiyesidir, eğer bunu görüyorsan logic çalışıyor!"]
     top_feature_name = None
     top_feature_label = None
     top_impact_direction = None
