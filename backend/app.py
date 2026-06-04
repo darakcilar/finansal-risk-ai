@@ -233,6 +233,7 @@ def predict():
             "xai_advice": local_explanation.get("xai_advice", ""), # Uzun dinamik metni buradan çeker
             "feature_importances": importances,
             "shap_values": shap_values_result,
+            "recommendations": local_explanation.get("recommendations", [])
         })
 
     except Exception as e:
