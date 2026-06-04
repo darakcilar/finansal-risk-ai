@@ -18,6 +18,13 @@ import sqlite3
 import json
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+from flask_cors import CORS # 1. Burayı ekle
+
+app = Flask(__name__)
+CORS(app) # 2. app'i tanımladıktan hemen sonra bu satırı ekle
+
+# ... senin kodlarının geri kalanı ...
 
 # .env dosyasını sisteme dahil ediyoruz
 load_dotenv()
@@ -42,12 +49,6 @@ init_db()
 # ---------------------------------------------------------------------------
 # Load model at startup
 # ---------------------------------------------------------------------------
-
-from flask_cors import CORS # En üste ekle
-
-app = Flask(__name__)
-CORS(app) # Bunu mutlaka app = Flask(__name__) satırından hemen sonra ekle
-
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "advanced_risk_model.joblib")
 
 print(f"📦 Model yükleniyor: {MODEL_PATH}")
