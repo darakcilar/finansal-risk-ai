@@ -40,3 +40,24 @@ python -m venv venv
 source venv/bin/activate  # Windows için: venv\Scripts\activate
 pip install -r requirements.txt
 python app.py
+```
+*(Not: `models/advanced_risk_model.joblib` dosyasının dizinde olduğundan emin olun.)*
+
+### 2. Frontend Kurulumu
+```bash
+cd frontend
+npm install
+npx expo start --web
+```
+
+## 🏗️ Proje Yapısı
+```text
+Finansal_Risk_AI/
+├── backend/          # Flask API, ML Modeli ve DB Logger
+├── frontend/         # React Native (Expo) Uygulaması
+├── .gitignore        # Git takibi dışında tutulan dosyalar
+└── README.md
+```
+
+## 👨‍💻 Geliştirici
+**Furkan Darakcılar**  
