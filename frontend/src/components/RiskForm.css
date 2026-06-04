@@ -1,0 +1,85 @@
+/* RiskForm.css */
+.risk-form {
+  animation: fadeInUp 0.5s ease;
+}
+
+.quick-fill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.quick-fill-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.quick-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quick-btn:hover {
+  background: var(--bg-glass-strong);
+  border-color: var(--border-glass-hover);
+}
+
+.quick-btn-low:hover {
+  border-color: rgba(104, 211, 145, 0.4);
+  color: var(--accent-green);
+}
+
+.quick-btn-high:hover {
+  border-color: rgba(252, 129, 129, 0.4);
+  color: var(--accent-red);
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.form-field {
+  animation: fadeInUp 0.4s ease both;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.field-icon {
+  font-size: 1rem;
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  padding-left: 2px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.05rem;
+}

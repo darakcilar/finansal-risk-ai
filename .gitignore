@@ -1,0 +1,21 @@
+# Node
+node_modules/
+.expo/
+dist/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Çevresel değişkenler (ASLA YÜKLEME!)
+.env
+.env.local
+
+# İşletim sistemi
+.DS_Store
+
+# Modelleri yükleme
+backend/models/*.joblib

@@ -1,0 +1,81 @@
+/* Header.css */
+.app-header {
+  position: relative;
+  padding: 28px 24px 20px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.header-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.header-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 200px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(102, 126, 234, 0.12) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.logo-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-lg);
+  color: white;
+  box-shadow: var(--shadow-glow-blue);
+  animation: float 4s ease-in-out infinite;
+}
+
+.logo-text h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.logo-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.25);
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-blue);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.header-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.5;
+}

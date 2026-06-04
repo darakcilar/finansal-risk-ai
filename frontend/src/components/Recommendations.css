@@ -1,0 +1,302 @@
+/* Recommendations.css */
+.recommendations {
+  animation: fadeInUp 0.6s ease 0.5s both;
+}
+
+.rec-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.rec-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #68d391, #4fd1c5);
+  border-radius: var(--radius-sm);
+  color: white;
+  flex-shrink: 0;
+}
+
+.rec-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rec-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Overall Summary */
+.rec-overall {
+  display: flex;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  border: 1px solid var(--border-glass);
+}
+
+.rec-overall-high {
+  background: rgba(252, 129, 129, 0.06);
+  border-color: rgba(252, 129, 129, 0.15);
+}
+
+.rec-overall-medium {
+  background: rgba(251, 211, 141, 0.06);
+  border-color: rgba(251, 211, 141, 0.15);
+}
+
+.rec-overall-low {
+  background: rgba(104, 211, 145, 0.06);
+  border-color: rgba(104, 211, 145, 0.15);
+}
+
+.overall-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.overall-text {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.overall-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overall-steps li {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.overall-steps li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+}
+
+/* Section Titles */
+.rec-section {
+  margin-bottom: 20px;
+}
+
+.rec-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+/* Risk Factor Cards */
+.risk-factor-card {
+  background: var(--card-bg, var(--bg-glass));
+  border: 1px solid var(--card-border, var(--border-glass));
+  border-radius: var(--radius-md);
+  padding: 18px;
+  margin-bottom: 12px;
+  animation: fadeInUp 0.4s ease both;
+  transition: all var(--transition-fast);
+}
+
+.risk-factor-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.factor-top {
+  margin-bottom: 12px;
+}
+
+.factor-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.factor-icon {
+  font-size: 1.1rem;
+}
+
+.factor-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.factor-severity {
+  padding: 2px 10px;
+  border: 1px solid;
+  border-radius: var(--radius-full);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.factor-metrics {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-sm);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.metric-value {
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-value.ideal {
+  color: var(--accent-green);
+}
+
+.metric-divider {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  padding: 0 4px;
+}
+
+.factor-explanation {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.factor-advice {
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent-blue);
+}
+
+.advice-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.factor-advice ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.factor-advice li {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding-left: 18px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.factor-advice li::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+  color: var(--accent-blue);
+  font-weight: bold;
+}
+
+/* Positive Factors */
+.positive-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.positive-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(104, 211, 145, 0.05);
+  border: 1px solid rgba(104, 211, 145, 0.12);
+  border-radius: var(--radius-md);
+  animation: fadeIn 0.3s ease both;
+}
+
+.positive-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.positive-content {
+  min-width: 0;
+}
+
+.positive-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.positive-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-green);
+  background: rgba(104, 211, 145, 0.1);
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+}
+
+.positive-msg {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}

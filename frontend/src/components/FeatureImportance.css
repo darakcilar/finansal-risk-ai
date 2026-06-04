@@ -1,0 +1,103 @@
+/* FeatureImportance.css */
+.feature-importance {
+  animation: fadeInUp 0.6s ease 0.2s both;
+}
+
+.fi-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.fi-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-sm);
+  color: white;
+  flex-shrink: 0;
+}
+
+.fi-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.fi-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.fi-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fi-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 50px;
+  align-items: center;
+  gap: 12px;
+  animation: fadeIn 0.4s ease both;
+}
+
+@media (min-width: 600px) {
+  .fi-row {
+    grid-template-columns: 180px 1fr 55px;
+  }
+}
+
+.fi-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fi-rank {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 24px;
+}
+
+.fi-name {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fi-bar-track {
+  height: 10px;
+  background: var(--bg-glass);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.fi-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  width: 0;
+  transition: width 1s ease;
+}
+
+.fi-bar-fill.bar-animate {
+  width: var(--bar-width);
+}
+
+.fi-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
