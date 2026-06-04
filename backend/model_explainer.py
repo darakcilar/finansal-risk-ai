@@ -6,10 +6,9 @@ and SHAP values utilities for the trained risk model.
 """
 
 import numpy as np
-import shap  # SHAP Kütüphanesi
+import shap  
 import traceback
 
-# Feature names aligned with the "Give Me Some Credit" Kaggle dataset
 FEATURE_NAMES = [
     "RevolvingUtilizationOfUnsecuredLines",
     "age",
@@ -23,7 +22,6 @@ FEATURE_NAMES = [
     "NumberOfDependents",
 ]
 
-# Turkish user-friendly labels for each feature
 FEATURE_LABELS_TR = {
     "RevolvingUtilizationOfUnsecuredLines": "Kredi Kartı Kullanım Oranı",
     "age": "Yaş",
@@ -37,17 +35,10 @@ FEATURE_LABELS_TR = {
     "NumberOfDependents": "Bakmakla Yükümlü Kişi Sayısı",
 }
 
-
 def get_feature_importance(model):
-    """
-    Extract feature importance from the model.
-    Works with Decision Tree, Random Forest, and Gradient Boosting models.
-    Returns a sorted list of {feature, label, importance} dicts.
-    """
     try:
         importances = model.feature_importances_
     except AttributeError:
-        # Fallback for models without feature_importances_
         return []
 
     result = []
@@ -58,30 +49,15 @@ def get_feature_importance(model):
             "label": FEATURE_LABELS_TR.get(fname, fname),
             "importance": round(float(imp), 4),
         })
-
-    # Sort descending by importance
     result.sort(key=lambda x: x["importance"], reverse=True)
     return result
 
-
 def get_decision_path(model, input_array):
-    """
-    Extract the decision path for a single sample through the tree.
-    For ensemble models, uses the first estimator.
-    Returns a list of decision steps.
-    """
     steps = []
-
     try:
-        # Get the base estimator
         if hasattr(model, "estimators_"):
-            # Random Forest / Gradient Boosting — use first tree
             tree = model.estimators_[0]
-            if hasattr(tree, "tree_"):
-                estimator = tree
-            else:
-                # GradientBoosting stores estimators as 2D array
-                estimator = tree[0] if hasattr(tree, "__getitem__") else tree
+            estimator = tree[0] if hasattr(tree, "__getitem__") and not hasattr(tree, "tree_") else tree
         elif hasattr(model, "tree_"):
             estimator = model
         else:
@@ -93,7 +69,6 @@ def get_decision_path(model, input_array):
 
         for node_id in node_indices:
             if tree.children_left[node_id] == tree.children_right[node_id]:
-                # Leaf node
                 values = tree.value[node_id].flatten()
                 if len(values) >= 2:
                     total = values.sum()
@@ -108,11 +83,7 @@ def get_decision_path(model, input_array):
             else:
                 feature_idx = tree.feature[node_id]
                 threshold = tree.threshold[node_id]
-                feature_name = (
-                    FEATURE_NAMES[feature_idx]
-                    if feature_idx < len(FEATURE_NAMES)
-                    else f"feature_{feature_idx}"
-                )
+                feature_name = FEATURE_NAMES[feature_idx] if feature_idx < len(FEATURE_NAMES) else f"feature_{feature_idx}"
                 feature_label = FEATURE_LABELS_TR.get(feature_name, feature_name)
                 value = float(input_array[0][feature_idx])
                 direction = "<=" if value <= threshold else ">"
@@ -124,198 +95,231 @@ def get_decision_path(model, input_array):
                     "threshold": round(float(threshold), 4),
                     "value": round(value, 4),
                     "direction": direction,
-                    "description": (
-                        f"{feature_label}: {value:.4f} {direction} {threshold:.4f}"
-                    ),
+                    "description": f"{feature_label}: {value:.4f} {direction} {threshold:.4f}",
                 })
     except Exception as e:
-        steps.append({"type": "error", "description": f"Karar yolu çıkarılamadı: {str(e)}"})
+        pass
 
     return steps
 
-
 def generate_local_explanation(model, input_array, feature_importances, prediction_proba):
-    """
-    Generate Turkish-language local explanations for why a specific
-    customer received their risk score.
-    """
-
     explanations = []
     risk_prob = float(prediction_proba)
-    top_feature_name = None
-    top_feature_label = None
-    top_impact_direction = None
+    risk_level = "high" if risk_prob >= 0.7 else "medium" if risk_prob >= 0.4 else "low"
     
-    # 1. GERÇEK LOKAL SHAP DEĞERLERİNE GÖRE EN ETKİLİ ÖZELLİĞİ BUL
-    if model is not None:
-        try:
-            explainer = shap.TreeExplainer(model)
-            shap_values = explainer.shap_values(input_array)
-            
-            if isinstance(shap_values, list):
-                vals = shap_values[1][0] 
-            elif hasattr(shap_values, "shape"):
-                if len(shap_values.shape) == 3:
-                    vals = shap_values[0, :, 1]
-                elif len(shap_values.shape) == 2:
-                    vals = shap_values[0]
-                else:
-                    vals = shap_values
-            else:
-                vals = shap_values[0]
-                
-            vals = np.array(vals).flatten()
-            
-            # Mutlak değerce en büyük etkiye sahip olan değişkeni yakala
-            max_idx = np.argmax(np.abs(vals))
-            
-            if max_idx < len(FEATURE_NAMES):
-                top_feature_name = FEATURE_NAMES[max_idx]
-                top_feature_label = FEATURE_LABELS_TR.get(top_feature_name, top_feature_name)
-                top_impact_direction = "increase" if vals[max_idx] > 0 else "decrease"
-                
-        except Exception as e:
-            print(f"XAI SHAP hesaplama hatası (Yönetici Özeti için): {e}")
-
-    # 2. SHAP BAŞARISIZ OLURSA YEDEK PLAN OLARAK MODELİN GENEL ÖNEMİNE BAK
-    if not top_feature_name and feature_importances and len(feature_importances) > 0:
-        top_feature_name = feature_importances[0]["feature"]
+    # SHAP ve NLG Kısımları (Özetler)
+    top_feature_label = None
+    top_impact_direction = "increase"
+    if feature_importances and len(feature_importances) > 0:
         top_feature_label = feature_importances[0]["label"]
-        top_impact_direction = "increase"
 
-    # 3. ÜSTTEKİ YEŞİL KUTU İÇİN UZUN DİNAMİK XAI METNİNİ OLUŞTUR (NLG)
     xai_advice = ""
     if risk_prob >= 0.7:
-        xai_advice = "Mevcut finansal verileriniz Yüksek Risk kategorisine işaret ediyor. Finansal sağlığınızı korumak için acil ve stratejik adımlar atmanız büyük önem taşıyor."
+        xai_advice = "Mevcut finansal verileriniz Yüksek Risk kategorisine işaret ediyor. Finansal sağlığınızı korumak için acil adımlar atmanız büyük önem taşıyor."
     elif risk_prob >= 0.4:
         xai_advice = "Verileriniz Orta Risk seviyesinde değerlendirilmiştir. Mali disiplininizi korumalı ve risk oluşturabilecek alanlara dikkat etmelisiniz."
     else:
         xai_advice = "Mevcut profiliniz Düşük Risk kategorisinde yer almaktadır. Finansal durumunuz sağlıklı ve sürdürülebilir bir görünüm sergiliyor."
 
     if top_feature_label:
-        if top_impact_direction == "increase":
-            xai_advice += f" Algoritmamızın risk skorunuzu yüksek hesaplamasındaki en temel neden, {top_feature_label} değişkenindeki mevcut durumunuzdur. Bu değer, modelimiz tarafından finansal sağlığınız üzerinde negatif bir baskı unsuru olarak yorumlanmaktadır."
-        else:
-            xai_advice += f" Risk skorunuzun bu seviyede kalmasını (veya düşmesini) sağlayan en güçlü olumlu faktör, {top_feature_label} değişkenindeki sağlıklı durumunuzdur."
+        xai_advice += f" Risk skorunuzun belirlenmesindeki en güçlü faktör, {top_feature_label} değişkenindeki mevcut durumunuzdur."
 
-    xai_advice += " Lütfen aşağıda yer alan özellik önem grafiklerini ve karar ağacı yollarını inceleyerek bu skorun detaylı matematiksel altyapısını görün."
-
-    # 4. ALTTAKİ GRAFİK KARTININ İÇİ İÇİN KISA VE NET ÖZET CÜMLESİ
     short_summary = ""
     if risk_prob >= 0.7:
         short_summary = "⚠️ Yüksek risk profili tespit edildi. Ana risk faktörlerini aşağıdan detaylıca inceleyebilirsiniz."
     elif risk_prob >= 0.4:
-        short_summary = "⚡ Orta düzey risk profili. Bazı finansal göstergeleriniz yakın takip ve dikkat gerektiriyor."
+        short_summary = "⚡ Orta düzey risk profili. Bazı finansal göstergeleriniz yakın takip gerektiriyor."
     else:
         short_summary = "✅ Düşük risk profili. Finansal durumunuz genel standartlara göre sağlıklı görünüyor."
 
-    # 5. DETAYLI SEKMELER İÇİN KLASİK EXPLANATIONS KONTROLLERİ
-    checks = [
-        {"feature": "RevolvingUtilizationOfUnsecuredLines", "idx": 0, "high_threshold": 0.5, "high_msg": "Kredi kartı kullanım oranınız yüksek ({val:.1%}). Bu, risk puanınızı artıran önemli bir faktör.", "low_msg": "Kredi kartı kullanım oranınız düşük ({val:.1%}). Bu, risk puanınızı olumlu etkiliyor.", "low_threshold": 0.3},
-        {"feature": "age", "idx": 1, "low_threshold": 30, "low_msg": "Genç yaşınız ({val:.0f}) nedeniyle kredi geçmişiniz kısa olabilir, bu riski artırabilir.", "high_threshold": 60, "high_msg": "Yaşınız ({val:.0f}) deneyimli bir profil gösteriyor, bu olumlu bir faktör."},
-        {"feature": "NumberOfTime30-59DaysPastDueNotWorse", "idx": 2, "high_threshold": 1, "high_msg": "Son 2 yılda {val:.0f} kez 30-59 gün ödeme gecikmesi yaşanmış. Bu risk puanınızı artırıyor.", "low_msg": None, "low_threshold": None},
-        {"feature": "DebtRatio", "idx": 3, "high_threshold": 0.5, "high_msg": "Borç/gelir oranınız yüksek ({val:.2f}). Aylık borcunuz gelirinize kıyasla fazla, bu risk seviyenizi artırıyor.", "low_msg": "Borç/gelir oranınız düşük ({val:.2f}). Mali durumunuz sağlıklı görünüyor.", "low_threshold": 0.3},
-        {"feature": "MonthlyIncome", "idx": 4, "low_threshold": 3000, "low_msg": "Aylık geliriniz ({val:,.0f}) düşük seviyede. Düşük gelir, risk puanını artıran bir faktördür.", "high_threshold": 8000, "high_msg": "Aylık geliriniz ({val:,.0f}) iyi seviyede. Yüksek gelir risk puanınızı olumlu etkiliyor."},
-        {"feature": "NumberOfTimes90DaysLate", "idx": 6, "high_threshold": 1, "high_msg": "90 günden fazla ödeme gecikmesi ({val:.0f} kez) ciddi bir risk göstergesidir. Risk puanınızı önemli ölçüde artırıyor.", "low_msg": None, "low_threshold": None},
-        {"feature": "NumberOfTime60-89DaysPastDueNotWorse", "idx": 8, "high_threshold": 1, "high_msg": "60-89 gün arası ödeme gecikmesi ({val:.0f} kez) risk puanınızı artırıyor.", "low_msg": None, "low_threshold": None},
-        {"feature": "NumberOfDependents", "idx": 9, "high_threshold": 3, "high_msg": "Bakmakla yükümlü olduğunuz {val:.0f} kişi, mali yükünüzü artırarak risk puanınızı yükseltebilir.", "low_msg": None, "low_threshold": None},
-    ]
 
-    for check in checks:
-        idx = check["idx"]
-        val = float(input_array[0][idx])
-        high_t = check.get("high_threshold")
-        low_t = check.get("low_threshold")
-        high_msg = check.get("high_msg")
-        low_msg = check.get("low_msg")
+    # =========================================================================
+    # JAVASCRIPT KURAL MOTORUNUN PYTHON'A BİREBİR ÇEVRİLMİŞ HALİ
+    # =========================================================================
+    risk_factors = []
+    positive_factors = []
 
-        imp_rank = None
-        for rank, fi in enumerate(feature_importances):
-            if fi["feature"] == check["feature"]:
-                imp_rank = rank
-                break
+    # 1. Kredi Kartı Kullanım Oranı
+    cc_util = float(input_array[0][0])
+    if cc_util > 0.7:
+        risk_factors.append({
+            "feature": 'Kredi Kartı Kullanım Oranı', "icon": '💳', "severity": 'critical',
+            "currentValue": f"%{int(cc_util * 100)}", "idealRange": '%0 – %30', "status": 'Çok Yüksek',
+            "explanation": f"Kredi kartlarınızın %{int(cc_util * 100)}'ini kullanıyorsunuz. Kredi limitinizin %30'undan fazlasını kullanmak, finansal baskı altında olduğunuz izlenimini verir.",
+            "advice": ['Kredi kartı bakiyenizi limitin %30\'unun altına düşürmeye çalışın.', 'En yüksek faizli karttan başlayarak borçları ödeyin (avalanche yöntemi).', 'Yeni alışverişlerde banka kartı kullanmayı tercih edin.']
+        })
+    elif cc_util > 0.3:
+        risk_factors.append({
+            "feature": 'Kredi Kartı Kullanım Oranı', "icon": '💳', "severity": 'warning',
+            "currentValue": f"%{int(cc_util * 100)}", "idealRange": '%0 – %30', "status": 'Orta',
+            "explanation": f"Kredi kartı kullanım oranınız %{int(cc_util * 100)}. Kabul edilebilir seviyede ancak %30'un altına düşürmek risk puanınızı olumlu etkileyecektir.",
+            "advice": ['Aylık bakiyenizi limitin %30\'unun altında tutmaya özen gösterin.']
+        })
+    else:
+        positive_factors.append({
+            "feature": 'Kredi Kartı Kullanım Oranı', "icon": '💳', "currentValue": f"%{int(cc_util * 100)}",
+            "message": 'Kredi kartı kullanım oranınız sağlıklı seviyede. Bu, risk puanınızı olumlu etkiliyor.'
+        })
 
-        if imp_rank is not None and imp_rank < 5:
-            if high_t is not None and val >= high_t and high_msg:
-                explanations.append({"feature": check["feature"], "label": FEATURE_LABELS_TR.get(check["feature"], check["feature"]), "direction": "increase" if "artır" in high_msg else "decrease", "message": high_msg.format(val=val), "impact": "high"})
-            elif low_t is not None and val < low_t and low_msg:
-                explanations.append({"feature": check["feature"], "label": FEATURE_LABELS_TR.get(check["feature"], check["feature"]), "direction": "increase" if "artır" in low_msg else "decrease", "message": low_msg.format(val=val), "impact": "medium"})
-        elif high_t is not None and val >= high_t and high_msg and "ciddi" in (high_msg or ""):
-            explanations.append({"feature": check["feature"], "label": FEATURE_LABELS_TR.get(check["feature"], check["feature"]), "direction": "increase", "message": high_msg.format(val=val), "impact": "critical"})
+    # 2. Yaş
+    age = float(input_array[0][1])
+    if age < 25:
+        risk_factors.append({
+            "feature": 'Yaş & Kredi Geçmişi', "icon": '👤', "severity": 'info',
+            "currentValue": f"{int(age)} yaş", "idealRange": '30+ yaş', "status": 'Genç Profil',
+            "explanation": f"{int(age)} yaşındasınız. Genç yaş, kısa kredi geçmişi anlamına gelir. Finans kuruluşları daha uzun kredi geçmişi olan bireyleri daha güvenilir bulur.",
+            "advice": ['Kredi geçmişinizi erken oluşturmak için düzenli ve küçük miktarlı kredi kullanın.', 'Tüm faturalarınızı zamanında ödeyerek olumlu bir ödeme geçmişi oluşturun.']
+        })
+    elif 25 <= age <= 60:
+        positive_factors.append({
+            "feature": 'Yaş & Kredi Geçmişi', "icon": '👤', "currentValue": f"{int(age)} yaş",
+            "message": 'Yaşınız, yeterli kredi geçmişi oluşturmak için uygun bir aralıkta.'
+        })
 
-    # 6. REACT'İN BEKLEDİĞİ KUSURSUZ FORMATTA TAVSİYELER YAPISI
+    # 3. Gecikme Sayıları
+    late30 = float(input_array[0][2])
+    late60 = float(input_array[0][8])
+    late90 = float(input_array[0][6])
+    total_late = late30 + late60 + late90
+
+    if late90 > 0:
+        risk_factors.append({
+            "feature": 'Ciddi Ödeme Gecikmeleri (90+ Gün)', "icon": '🚨', "severity": 'critical',
+            "currentValue": f"{int(late90)} kez", "idealRange": '0 kez', "status": 'Kritik',
+            "explanation": f"Son 2 yılda {int(late90)} kez 90 günden fazla ödeme gecikmesi yaşanmış. Bu durum kredi puanınızı en çok olumsuz etkileyen faktörlerden biridir.",
+            "advice": ['Mevcut tüm gecikmeli ödemelerinizi acilen güncelleyin.', 'Otomasitk ödeme talimatı kurarak gelecekteki gecikmeleri önleyin.']
+        })
+    if late60 > 0:
+        risk_factors.append({
+            "feature": '60-89 Gün Gecikme', "icon": '⚠️', "severity": 'warning',
+            "currentValue": f"{int(late60)} kez", "idealRange": '0 kez', "status": 'Uyarı',
+            "explanation": f"{int(late60)} kez 60-89 gün arası ödeme gecikmesi tespit edildi. Bu tür gecikmeler kredi raporunuza olumsuz yansır.",
+            "advice": ['Tüm fatura ve kredi ödemeleriniz için otomatik ödeme kurun.']
+        })
+    if late30 > 0:
+        risk_factors.append({
+            "feature": '30-59 Gün Gecikme', "icon": '⏰', "severity": 'warning',
+            "currentValue": f"{int(late30)} kez", "idealRange": '0 kez', "status": 'Dikkat',
+            "explanation": f"{int(late30)} kez 30-59 gün arası ödeme gecikmesi yaşanmış. Her gecikme kredi puanınızı olumsuz etkiler.",
+            "advice": ['Ödeme hatırlatıcıları kurun (telefon bildirimi, takvim uyarısı).']
+        })
+    if total_late == 0:
+        positive_factors.append({
+            "feature": 'Ödeme Geçmişi', "icon": '✅', "currentValue": '0 gecikme',
+            "message": 'Hiç ödeme gecikmesi yok! Mükemmel ödeme disiplini, risk puanınızı çok olumlu etkiliyor.'
+        })
+
+    # 4. Borç/Gelir Oranı
+    debt_ratio = float(input_array[0][3])
+    if debt_ratio > 0.5:
+        risk_factors.append({
+            "feature": 'Borç / Gelir Oranı', "icon": '📊', "severity": 'critical' if debt_ratio > 0.8 else 'warning',
+            "currentValue": f"%{int(debt_ratio * 100)}", "idealRange": '%0 – %35', "status": 'Çok Yüksek' if debt_ratio > 0.8 else 'Yüksek',
+            "explanation": f"Aylık borç ödemeleriniz gelirinizin %{int(debt_ratio * 100)}'ini oluşturuyor. Finans kuruluşları genellikle %35'in altındaki oranları sağlıklı kabul eder.",
+            "advice": ['En yüksek faizli borçları öncelikli olarak kapatın.', 'Düşük faizli kredi ile yüksek faizli borçları birleştirmeyi değerlendirin.']
+        })
+    elif debt_ratio > 0.35:
+        risk_factors.append({
+            "feature": 'Borç / Gelir Oranı', "icon": '📊', "severity": 'info',
+            "currentValue": f"%{int(debt_ratio * 100)}", "idealRange": '%0 – %35', "status": 'Dikkat',
+            "explanation": f"Borç/gelir oranınız %{int(debt_ratio * 100)}. İdeal aralığın biraz üstünde, ancak yönetilebilir seviyede.",
+            "advice": ['Yeni borçlanma yapmadan önce mevcut borçları azaltın.']
+        })
+    else:
+        positive_factors.append({
+            "feature": 'Borç / Gelir Oranı', "icon": '📊', "currentValue": f"%{int(debt_ratio * 100)}",
+            "message": 'Borç/gelir oranınız sağlıklı seviyede. Finansal durumunuz dengeli.'
+        })
+
+    # 5. Aylık Gelir
+    income = float(input_array[0][4])
+    if income < 3000:
+        risk_factors.append({
+            "feature": 'Aylık Gelir', "icon": '💰', "severity": 'warning',
+            "currentValue": f"{int(income):,} ₺", "idealRange": '5,000+ ₺', "status": 'Düşük',
+            "explanation": f"Aylık geliriniz {int(income):,} ₺ seviyesinde. Düşük gelir, beklenmedik harcamalar karşısında mali dayanıklılığı azaltır.",
+            "advice": ['Acil durum fonu oluşturun (en az 3 aylık gider karşılığı).', 'Gelir seviyenize uygun bir bütçe planı oluşturun.']
+        })
+    elif income >= 8000:
+        positive_factors.append({
+            "feature": 'Aylık Gelir', "icon": '💰', "currentValue": f"{int(income):,} ₺",
+            "message": 'Aylık geliriniz yüksek seviyede. Bu, mali dayanıklılığınızı ve risk profilinizi olumlu etkiliyor.'
+        })
+    else:
+        positive_factors.append({
+            "feature": 'Aylık Gelir', "icon": '💰', "currentValue": f"{int(income):,} ₺",
+            "message": 'Aylık geliriniz orta seviyede. Borçlarınızı yönetilebilir seviyede tutmaya devam edin.'
+        })
+
+    # 6. Açık Kredi Sayısı
+    open_credits = float(input_array[0][5])
+    if open_credits > 10:
+        risk_factors.append({
+            "feature": 'Açık Kredi Sayısı', "icon": '🏦', "severity": 'warning',
+            "currentValue": f"{int(open_credits)} adet", "idealRange": '3 – 7 adet', "status": 'Yüksek',
+            "explanation": f"{int(open_credits)} adet açık kredi veya kredi kartınız var. Çok sayıda açık hesap, aşırı borçlanma riskinin göstergesi olabilir.",
+            "advice": ['Kullanmadığınız kredi kartlarını kapatmayı değerlendirin.']
+        })
+
+    # 7. Bakmakla Yükümlü Kişi
+    dependents = float(input_array[0][9])
+    if dependents >= 4:
+        risk_factors.append({
+            "feature": 'Bakmakla Yükümlü Kişi Sayısı', "icon": '👨‍👩‍👧‍👦', "severity": 'info',
+            "currentValue": f"{int(dependents)} kişi", "idealRange": 'Gelire orantılı', "status": 'Yüksek Yük',
+            "explanation": f"{int(dependents)} kişiye bakmakla yükümlüsünüz. Fazla bağımlı birey, sabit giderleri artırarak finansal esnekliği azaltır.",
+            "advice": ['Aile bütçesini detaylı planlayın ve takip edin.', 'Acil durumlar için önceden birikim yapın.']
+        })
+
+    # Genel Tavsiye Özeti
+    if risk_level == 'high':
+        overall_summary = 'Yüksek risk profili tespit edildi. Aşağıdaki adımları öncelik sırasına göre uygulamak risk puanınızı düşürebilir.'
+        overall_advice = ['Öncelik 1: Gecikmeli tüm ödemeleri hemen güncelleyin.', 'Öncelik 2: Kredi kartı bakiyelerini limitin %30\'unun altına düşürün.', 'Öncelik 3: Yeni borçlanmadan kaçının.']
+    elif risk_level == 'medium':
+        overall_summary = 'Orta düzey risk profili tespit edildi. Bazı alanlarda iyileştirme yaparak risk puanınızı düşürebilirsiniz.'
+        overall_advice = ['Ödeme disiplinini koruyun — tek bir gecikme bile puanı düşürebilir.', 'Borç/gelir oranınızı %35\'in altında tutmaya çalışın.']
+    else:
+        overall_summary = 'Düşük risk profili — finansal durumunuz sağlıklı görünüyor. Mevcut disiplini korumaya devam edin.'
+        overall_advice = ['Mevcut ödeme düzeninizi korumaya devam edin.', 'Kredi puanınızı periyodik olarak kontrol edin.']
+
     recommendations_data = {
-        "overallSummary": "Sistem Analizi ve Tavsiyeler Başarıyla Yüklendi",
-        "overallAdvice": [
-            "Bu metni görüyorsanız React bileşenleriniz backend ile kusursuz uyum içindedir.",
-            "Tüm risk parametreleri başarıyla analiz edildi."
-        ],
-        "riskFactors": [
-            {
-                "icon": "⚠️",
-                "feature": "Sistem Test Faktörü",
-                "currentValue": "Başarılı",
-                "explanation": "Bu örnek bir risk faktörüdür. React kodunuzun bu kutuyu çizebildiğini gösterir.",
-                "advice": [
-                    "Bağlantı testini tamamladınız.",
-                    "Frontend ve backend veri alışverişi %100 sorunsuz çalışıyor."
-                ]
-            }
-        ]
+        "riskFactors": risk_factors,
+        "positiveFactors": positive_factors,
+        "overallSummary": overall_summary,
+        "overallAdvice": overall_advice,
+        "riskLevel": risk_level,
+        "totalRiskFactors": len(risk_factors),
+        "totalPositiveFactors": len(positive_factors)
     }
 
-    # 7. HER ŞEYİ DÖNDÜRÜYORUZ (Asıl hatanın çözüldüğü yer)
     return {
         "explanations": explanations,
         "summary": short_summary,
         "xai_advice": xai_advice,
-        "risk_level": "high" if risk_prob >= 0.7 else "medium" if risk_prob >= 0.4 else "low",
-        "recommendations": recommendations_data  # Eksik olan kritik satır eklendi
+        "risk_level": risk_level,
+        "recommendations": recommendations_data
     }
 
-
 def get_shap_values(model, input_array):
-    """
-    Kullanıcının girdiği spesifik veriler için SHAP değerlerini hesaplar.
-    """
     shap_results = []
-    
     try:
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(input_array)
-        
         if isinstance(shap_values, list):
             vals = shap_values[1][0] 
         elif hasattr(shap_values, "shape"):
-            if len(shap_values.shape) == 3:
-                vals = shap_values[0, :, 1]
-            elif len(shap_values.shape) == 2:
-                vals = shap_values[0]
-            else:
-                vals = shap_values
+            vals = shap_values[0, :, 1] if len(shap_values.shape) == 3 else shap_values[0]
         else:
             vals = shap_values[0]
             
         vals = np.array(vals).flatten()
-        
         for i, val in enumerate(vals):
-            if i >= len(FEATURE_NAMES):
-                break
-                
+            if i >= len(FEATURE_NAMES): break
             fname = FEATURE_NAMES[i]
             label = FEATURE_LABELS_TR.get(fname, fname)
-            scalar_val = float(val)
-            
-            if abs(scalar_val) > 0.001:
-                shap_results.append({
-                    "feature": label,
-                    "value": scalar_val
-                })
-        
+            if abs(float(val)) > 0.001:
+                shap_results.append({"feature": label, "value": float(val)})
         shap_results.sort(key=lambda x: abs(x["value"]), reverse=True)
-        
     except Exception as e:
-        print(f"SHAP hesaplama hatası: {e}")
-        traceback.print_exc()
-        
+        pass
     return shap_results
