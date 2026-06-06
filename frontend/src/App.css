@@ -247,7 +247,29 @@
     width: 100% !important;
   }
 
-  /* 🚀 YENİ: SİSTEM YÖNETİCİSİ (ADMIN) EKRANI MOBİL DÜZELTMELERİ */
+  /* 🚀 YENİ: BÜTÜN GRAFİKLERİ VE SİMÜLATÖRÜ KESİN OLARAK ALT ALTA ALMA */
+  .results-section > div {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+
+  /* Recharts grafiklerinin dar ekranda bozulmasını/kaybolmasını önler */
+  .recharts-responsive-container,
+  .recharts-wrapper {
+    width: 100% !important;
+    min-height: 250px !important; /* Grafiğe minimum alan açar */
+    margin: 0 auto !important;
+  }
+  
+  /* Simülatör ve Karşılaştırma Modülündeki yan yana kolonları ezer */
+  .what-if-simulator > div,
+  .peer-comparison > div {
+    flex-direction: column !important;
+  }
+
+  /* 🚀 SİSTEM YÖNETİCİSİ (ADMIN) EKRANI MOBİL DÜZELTMELERİ */
   .admin-dashboard { padding: 10px !important; }
   
   /* Admin istatistik kartlarını (Yaş, Gelir vs.) yan yana sıkışmaktan kurtarıp alt alta dizer */
@@ -294,6 +316,8 @@
     text-align: center;
     gap: 20px;
   }
+
+  /* Admin butonunu mobilde absolute (sağa sabit) olmaktan çıkarıp merkeze alıyoruz */
   .app-footer button {
     position: relative !important;
     right: auto !important;
@@ -302,6 +326,8 @@
     width: auto !important;
     margin: 0 auto;
   }
+  
+  /* PDF İndir ve Analiz Raporu Başlığı Hizalaması */
   #results-section > div:first-child {
     flex-direction: column !important;
     align-items: stretch !important;
