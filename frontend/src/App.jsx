@@ -12,7 +12,6 @@ import AdminDashboard from './components/AdminDashboard'
 import html2pdf from 'html2pdf.js'
 import PeerComparison from './components/PeerComparison'
 
-// Backend API adresi
 const API_BASE = 'https://finansal-risk-ai.onrender.com/api'
 
 function App() {
@@ -44,12 +43,9 @@ function App() {
       }
 
       const data = await response.json()
-      console.log("📊 Sunucudan Gelen Ham Veri:", data)
-      
       setResult(data)
       setTimeout(() => setShowResults(true), 150)
     } catch (err) {
-      console.error("❌ Hata:", err.message)
       setError(err.message)
     } finally {
       setLoading(false)
@@ -63,13 +59,11 @@ function App() {
       return;
     }
 
-    // 1. Tavsiyeleri Yapısal Olarak Çekme (Düz metin yerine şık HTML blokları)
     let recHtmlBlocks = '';
     
     if (result.recommendations) {
       const recs = result.recommendations;
       
-      // Genel Değerlendirme
       if (recs.overallAdvice && recs.overallAdvice.length > 0) {
         recHtmlBlocks += `
           <div style="margin-bottom: 20px; page-break-inside: avoid;">
@@ -82,19 +76,19 @@ function App() {
         `;
       }
 
-      // Spesifik Risk Faktörleri ve Çözümleri
       if (recs.riskFactors && recs.riskFactors.length > 0) {
         recHtmlBlocks += `<h3 style="color: #e11d48; font-size: 14px; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px dashed #fecdd3; padding-bottom: 5px; page-break-after: avoid;">⚠️ Öncelikli İyileştirme Alanları</h3>`;
         
         recs.riskFactors.forEach(rf => {
-          // DİNAMİK RENK ATAMASI
+          // 🚀 ÇÖZÜM 1: Renk eşleşmesini garantiye almak için tüm boşlukları siliyoruz (trim)
+          const sev = String(rf.severity || '').toLowerCase().trim();
           let bgHex = '#fdf2f8'; // Varsayılan Kırmızımsı (Critical)
           let borderHex = '#f43f5e';
           
-          if (rf.severity === 'warning') {
+          if (sev === 'warning') {
             bgHex = '#fffbeb'; // Sarı (Warning)
             borderHex = '#f59e0b';
-          } else if (rf.severity === 'info') {
+          } else if (sev === 'info') {
             bgHex = '#eef2ff'; // Mavi (Info)
             borderHex = '#3b82f6';
           }
@@ -118,7 +112,6 @@ function App() {
       recHtmlBlocks = `<p style="font-size: 12px;">Finansal verilerinizi düzenli takip etmeye devam edin.</p>`;
     }
 
-    // 2. SHAP Değerlerini Ayıkla
     const riskIncreasers = result.shap_values?.filter(s => s.value > 0).slice(0, 3) || [];
     const riskDecreasers = result.shap_values?.filter(s => s.value < 0).slice(0, 3) || [];
 
@@ -197,7 +190,7 @@ function App() {
 
         <div class="html2pdf__page-break"></div>
 
-        <h2 style="color: #0f172a; font-size: 16px; margin-top: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; page-break-after: avoid;">${shapHtml ? '4' : '3'}. Yapay Zeka Tavsiyeli Eylem Planı</h2>
+        <h2 style="color: #0f172a; font-size: 16px; margin-top: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">${shapHtml ? '4' : '3'}. Yapay Zeka Tavsiyeli Eylem Planı</h2>
         <div style="margin-top: 15px;">
           ${recHtmlBlocks}
         </div>
@@ -215,7 +208,8 @@ function App() {
       image: { type: 'jpeg', quality: 0.98 }, 
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, 
-      pagebreak: { mode: ['css', 'avoid-all'] } 
+      // 🚀 ÇÖZÜM 3: 'legacy' modunu ekledik. Bu sayede html2pdf__page-break class'ı gerçek bir sayfa kesici olarak çalışacak.
+      pagebreak: { mode: ['css', 'legacy', 'avoid-all'] } 
     };
     
     html2pdf().set(opt).from(reportHtml).save();
