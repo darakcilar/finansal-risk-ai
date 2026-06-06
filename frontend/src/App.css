@@ -233,25 +233,13 @@
    📱 MOBİL UYUM (RESPONSIVE DESIGN) - TELEFON VE TABLETLER İÇİN
 ========================================================================== */
 @media screen and (max-width: 768px) {
-  /* 1. Genel Kapsayıcıyı Daraltıp Ekrana Oturtma */
-  .main-content {
-    padding: 10px;
-  }
-  
-  .container {
-    width: 100% !important;
-    padding: 15px !important;
-    margin: 0 !important;
-  }
+  /* Genel Kapsayıcı Düzeltmeleri */
+  .main-content { padding: 10px; }
+  .container { width: 100% !important; padding: 15px !important; margin: 0 !important; }
 
-  /* 2. Yan Yana Olan Kartları ve Formları Alt Alta (Column) Dizme */
-  .form-row,
-  .positive-grid,
-  .shap-waterfall-container,
-  .rec-header,
-  .factor-title-row,
-  .factor-metrics,
-  .metric {
+  /* Müşteri Formu & Sonuç Ekranı Düzeni */
+  .form-row, .positive-grid, .shap-waterfall-container, 
+  .rec-header, .factor-title-row, .factor-metrics, .metric {
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -259,34 +247,53 @@
     width: 100% !important;
   }
 
-  /* 3. Yazı Boyutlarını Mobil İçin Optimize Etme */
+  /* 🚀 YENİ: SİSTEM YÖNETİCİSİ (ADMIN) EKRANI MOBİL DÜZELTMELERİ */
+  .admin-dashboard { padding: 10px !important; }
+  
+  /* Admin istatistik kartlarını (Yaş, Gelir vs.) yan yana sıkışmaktan kurtarıp alt alta dizer */
+  .admin-stats-grid, .stats-container, .dashboard-cards {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+  }
+  
+  /* Tablonun ekrandan taşmasını engeller ve yatayda kaydırılabilir (scroll) yapar */
+  .admin-table-wrapper, .table-container, .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch; /* Mobilde pürüzsüz kaydırma sağlar */
+    width: 100% !important;
+    border: 1px solid var(--border-glass);
+    border-radius: 8px;
+  }
+  
+  /* Admin panel üst bilgi kısmı (Başlık ve Butonlar) */
+  .admin-header, .dashboard-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 15px !important;
+  }
+
+  /* Yazı ve Buton Optimizasyonu */
   h1 { font-size: 1.5rem !important; }
   h2 { font-size: 1.3rem !important; }
   h3 { font-size: 1.1rem !important; }
-  p, li, span { font-size: 0.9rem !important; line-height: 1.5 !important; }
+  p, li, span, td, th { font-size: 0.9rem !important; line-height: 1.5 !important; }
 
-  /* 4. Butonları ve Girdileri Ekrana Yayma */
   input, select, button {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
   }
 
-  /* 5. Görüntü Taşmalarını Engelleme (Grafikler için) */
-  canvas, svg {
-    max-width: 100% !important;
-    height: auto !important;
-  }
+  canvas, svg { max-width: 100% !important; height: auto !important; }
 
-  /* 6. Footer (Alt Bilgi) ve Admin Butonu Düzeltmesi */
+  /* Footer Düzeltmesi */
   .app-footer {
     flex-direction: column !important;
     padding: 20px 10px !important;
     text-align: center;
     gap: 20px;
   }
-
-  /* Admin butonunu mobilde absolute (sağa sabit) olmaktan çıkarıp merkeze alıyoruz */
   .app-footer button {
     position: relative !important;
     right: auto !important;
@@ -295,8 +302,6 @@
     width: auto !important;
     margin: 0 auto;
   }
-  
-  /* 7. PDF İndir ve Analiz Raporu Başlığı Hizalaması */
   #results-section > div:first-child {
     flex-direction: column !important;
     align-items: stretch !important;

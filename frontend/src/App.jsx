@@ -195,7 +195,9 @@ function App() {
 
         ${shapHtml}
 
-        <h2 style="color: #0f172a; font-size: 16px; margin-top: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; page-break-after: avoid;">${shapHtml ? '4' : '3'}. Yapay Zeka Tavsiyeli Eylem Planı</h2>
+        <div class="html2pdf__page-break"></div>
+
+        <h2 style="color: #0f172a; font-size: 16px; margin-top: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; page-break-after: avoid;">${shapHtml ? '4' : '3'}. Yapay Zeka Tavsiyeli Eylem Planı</h2>
         <div style="margin-top: 15px;">
           ${recHtmlBlocks}
         </div>
