@@ -10,7 +10,7 @@ import WhatIfSimulator from './components/WhatIfSimulator'
 import ShapWaterfall from './components/ShapWaterfall'
 import AdminDashboard from './components/AdminDashboard' 
 import html2pdf from 'html2pdf.js'
-import PeerComparison from './components/PeerComparison';
+import PeerComparison from './components/PeerComparison'
 
 // Backend API adresi
 const API_BASE = 'https://finansal-risk-ai.onrender.com/api'
@@ -84,11 +84,23 @@ function App() {
 
       // Spesifik Risk Faktörleri ve Çözümleri
       if (recs.riskFactors && recs.riskFactors.length > 0) {
-        recHtmlBlocks += `<h3 style="color: #e11d48; font-size: 14px; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px dashed #fecdd3; padding-bottom: 5px;">⚠️ Öncelikli İyileştirme Alanları</h3>`;
+        recHtmlBlocks += `<h3 style="color: #e11d48; font-size: 14px; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px dashed #fecdd3; padding-bottom: 5px; page-break-after: avoid;">⚠️ Öncelikli İyileştirme Alanları</h3>`;
         
         recs.riskFactors.forEach(rf => {
+          // DİNAMİK RENK ATAMASI
+          let bgHex = '#fdf2f8'; // Varsayılan Kırmızımsı (Critical)
+          let borderHex = '#f43f5e';
+          
+          if (rf.severity === 'warning') {
+            bgHex = '#fffbeb'; // Sarı (Warning)
+            borderHex = '#f59e0b';
+          } else if (rf.severity === 'info') {
+            bgHex = '#eef2ff'; // Mavi (Info)
+            borderHex = '#3b82f6';
+          }
+
           recHtmlBlocks += `
-            <div style="margin-bottom: 15px; background: #fdf2f8; padding: 12px; border-left: 4px solid #f43f5e; border-radius: 4px; page-break-inside: avoid;">
+            <div style="margin-bottom: 15px; background: ${bgHex}; padding: 12px; border-left: 4px solid ${borderHex}; border-radius: 4px; page-break-inside: avoid;">
               <strong style="color: #0f172a; font-size: 13px; display: block; margin-bottom: 5px;">
                 ${rf.icon} ${rf.feature} <span style="color: #64748b; font-weight: normal; font-size: 11px;">(Mevcut Değer: ${rf.currentValue})</span>
               </strong>
@@ -113,20 +125,22 @@ function App() {
     let shapHtml = '';
     if (riskIncreasers.length > 0 || riskDecreasers.length > 0) {
       shapHtml = `
-        <h2 style="color: #0f172a; font-size: 16px; margin-top: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; page-break-after: avoid;">3. Bireysel Risk Etkenleri (SHAP Analizi)</h2>
-        <div style="display: flex; gap: 15px; margin-top: 15px; page-break-inside: avoid;">
-            <div style="flex: 1; background: #fff1f2; border: 1px solid #ffe4e6; padding: 15px; border-radius: 8px;">
-                <strong style="color: #e11d48; font-size: 13px; display: block; border-bottom: 1px solid #fda4af; padding-bottom: 5px; margin-bottom: 8px;">📈 Riski Artıran Ana Faktörler</strong>
-                <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #4c0519; line-height: 1.6;">
-                    ${riskIncreasers.map(s => `<li>${s.feature}</li>`).join('')}
-                </ul>
-            </div>
-            <div style="flex: 1; background: #ecfdf5; border: 1px solid #d1fae5; padding: 15px; border-radius: 8px;">
-                <strong style="color: #059669; font-size: 13px; display: block; border-bottom: 1px solid #6ee7b7; padding-bottom: 5px; margin-bottom: 8px;">📉 Riski Düşüren Ana Faktörler</strong>
-                <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #064e3b; line-height: 1.6;">
-                    ${riskDecreasers.map(s => `<li>${s.feature}</li>`).join('')}
-                </ul>
-            </div>
+        <div style="page-break-inside: avoid;">
+          <h2 style="color: #0f172a; font-size: 16px; margin-top: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; page-break-after: avoid;">3. Bireysel Risk Etkenleri (SHAP Analizi)</h2>
+          <div style="display: flex; gap: 15px; margin-top: 15px;">
+              <div style="flex: 1; background: #fff1f2; border: 1px solid #ffe4e6; padding: 15px; border-radius: 8px;">
+                  <strong style="color: #e11d48; font-size: 13px; display: block; border-bottom: 1px solid #fda4af; padding-bottom: 5px; margin-bottom: 8px;">📈 Riski Artıran Ana Faktörler</strong>
+                  <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #4c0519; line-height: 1.6;">
+                      ${riskIncreasers.map(s => `<li>${s.feature}</li>`).join('')}
+                  </ul>
+              </div>
+              <div style="flex: 1; background: #ecfdf5; border: 1px solid #d1fae5; padding: 15px; border-radius: 8px;">
+                  <strong style="color: #059669; font-size: 13px; display: block; border-bottom: 1px solid #6ee7b7; padding-bottom: 5px; margin-bottom: 8px;">📉 Riski Düşüren Ana Faktörler</strong>
+                  <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #064e3b; line-height: 1.6;">
+                      ${riskDecreasers.map(s => `<li>${s.feature}</li>`).join('')}
+                  </ul>
+              </div>
+          </div>
         </div>
       `;
     }
@@ -156,13 +170,13 @@ function App() {
           <div><span style="color:#64748b; font-size:11px; text-transform:uppercase; display:block;">Açık Kredi/Kart</span><strong style="font-size:16px; color:#0f172a;">${currentFeatures.NumberOfOpenCreditLinesAndLoans || '0'} Adet</strong></div>
         </div>
 
-        <h2 style="color: #0284c7; font-size: 16px; margin-top: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">1. XAI Yönetici Özeti</h2>
+        <h2 style="color: #0284c7; font-size: 16px; margin-top: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; page-break-after: avoid;">1. XAI Yönetici Özeti</h2>
         <p style="background-color: #f0f9ff; padding: 16px; border-left: 4px solid #0284c7; border-radius: 0 8px 8px 0; line-height: 1.6; font-size: 13px; margin-bottom: 0; page-break-inside: avoid;">
           ${result.xai_advice || "XAI motoru yanıt vermedi."}
         </p>
 
         <div style="page-break-inside: avoid;">
-          <h2 style="color: #0f172a; font-size: 16px; margin-top: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">2. İstatistiksel Model Çıktısı</h2>
+          <h2 style="color: #0f172a; font-size: 16px; margin-top: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; page-break-after: avoid;">2. İstatistiksel Model Çıktısı</h2>
           <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
             <tr>
               <td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f1f5f9; width: 50%; color: #475569; font-weight: 500;">Risk Seviyesi Kategorisi</td>
@@ -181,9 +195,7 @@ function App() {
 
         ${shapHtml}
 
-        <div class="html2pdf__page-break"></div>
-
-        <h2 style="color: #0f172a; font-size: 16px; margin-top: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">${shapHtml ? '4' : '3'}. Yapay Zeka Tavsiyeli Eylem Planı</h2>
+        <h2 style="color: #0f172a; font-size: 16px; margin-top: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; page-break-after: avoid;">${shapHtml ? '4' : '3'}. Yapay Zeka Tavsiyeli Eylem Planı</h2>
         <div style="margin-top: 15px;">
           ${recHtmlBlocks}
         </div>
@@ -195,14 +207,13 @@ function App() {
       </div>
     `;
 
-    // OPT AYARLARI GÜNCELLENDİ: CSS Sayfa kesmelerine izin veriyoruz.
     const opt = {
       margin: 0.3, 
       filename: `Finansal_Risk_Raporu_${new Date().toISOString().slice(0,10)}.pdf`,
       image: { type: 'jpeg', quality: 0.98 }, 
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, 
-      pagebreak: { mode: ['css', 'avoid-all'] } // YENİ: CSS page-break komutlarını dinle!
+      pagebreak: { mode: ['css', 'avoid-all'] } 
     };
     
     html2pdf().set(opt).from(reportHtml).save();

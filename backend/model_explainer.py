@@ -113,16 +113,49 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
     if feature_importances and len(feature_importances) > 0:
         top_feature_label = feature_importances[0]["label"]
 
+    # =========================================================================
+    # DİNAMİK XAI YÖNETİCİ ÖZETİ (KİŞİSELLEŞTİRİLMİŞ METİN ÜRETİMİ)
+    # =========================================================================
     xai_advice = ""
+    
+    # 1. Giriş Cümlesi (Gerçek Yüzdelik Oran ile)
     if risk_prob >= 0.7:
-        xai_advice = "Mevcut finansal verileriniz Yüksek Risk kategorisine işaret ediyor. Finansal sağlığınızı korumak için acil adımlar atmanız büyük önem taşıyor."
+        xai_advice = f"Yapay zeka modelimiz, girdiğiniz veriler doğrultusunda finansal profilinizi %{int(risk_prob*100)} ihtimalle 'Yüksek Riskli' olarak sınıflandırmıştır. "
     elif risk_prob >= 0.4:
-        xai_advice = "Verileriniz Orta Risk seviyesinde değerlendirilmiştir. Mali disiplininizi korumalı ve risk oluşturabilecek alanlara dikkat etmelisiniz."
+        xai_advice = f"Yapay zeka modelimiz, finansal profilinizi %{int(risk_prob*100)} ihtimalle 'Orta Riskli' olarak değerlendirmiştir. "
     else:
-        xai_advice = "Mevcut profiliniz Düşük Risk kategorisinde yer almaktadır. Finansal durumunuz sağlıklı ve sürdürülebilir bir görünüm sergiliyor."
+        xai_advice = f"Sistemimiz finansal durumunuzu sağlıklı bularak %{int(risk_prob*100)} risk skoru ile 'Düşük Risk' kategorisine yerleştirmiştir. "
 
-    if top_feature_label:
-        xai_advice += f" Risk skorunuzun belirlenmesindeki en güçlü faktör, {top_feature_label} değişkenindeki mevcut durumunuzdur."
+    # 2. Kullanıcının Kendi Verilerini Cümlenin İçine Yedirme
+    cc_util_val = float(input_array[0][0])
+    age_val = float(input_array[0][1])
+    total_late_val = float(input_array[0][2]) + float(input_array[0][8]) + float(input_array[0][6])
+    debt_ratio_val = float(input_array[0][3])
+
+    details = []
+    if total_late_val > 0:
+        details.append(f"geçmişteki ödeme gecikmeleriniz ({int(total_late_val)} kez)")
+    if cc_util_val > 0.5:
+        details.append(f"kredi kartı limitlerinizin büyük kısmını kullanmanız (doluluk: %{int(cc_util_val*100)})")
+    if debt_ratio_val > 0.4:
+        details.append(f"gelirinize kıyasla yüksek olan borç yükünüz (oran: %{int(debt_ratio_val*100)})")
+    if age_val < 26 and risk_prob >= 0.4:
+        details.append(f"henüz tam oturmamış kredi geçmişiniz (yaş: {int(age_val)})")
+
+    # 3. Neden/Sonuç Bağlamını Kurma
+    if details:
+        if risk_prob >= 0.4:
+            xai_advice += f"Özellikle {', '.join(details)} bu skorun yükselmesindeki en temel matematiksel nedenlerdir. "
+        else:
+            xai_advice += f"Bununla birlikte, {', '.join(details)} gibi faktörlere dikkat etmeniz faydalı olacaktır. "
+    elif risk_prob < 0.4:
+         xai_advice += "Düzenli ödeme geçmişiniz ve limitlerinizi dengeli kullanmanız bu olumlu skoru destekleyen en güçlü faktörlerdir. "
+
+    # 4. Kapanış ve SHAP Vurgusu
+    if top_feature_label and risk_prob >= 0.4:
+        xai_advice += f"SHAP (Açıklanabilir Yapay Zeka) analizine göre, riskinizi artıran en dominant faktör '{top_feature_label}' olarak tespit edilmiştir."
+    elif top_feature_label and risk_prob < 0.4:
+        xai_advice += f"SHAP analizine göre, profilinizi en çok güçlendiren özellik '{top_feature_label}' değişkenidir."
 
     short_summary = ""
     if risk_prob >= 0.7:
