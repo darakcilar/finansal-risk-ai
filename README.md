@@ -59,6 +59,9 @@ Finansal_Risk_AI/
 └── README.md
 ```
 
+## 📝 Lisans
+Bu proje **MIT Lisansı** altında lisanslanmıştır.
+
 ## 👨‍💻 Geliştirici
 **Furkan Darakcılar**  
-# Underwater-Object-Detection
+[GitHub Profilim](https://github.com/darakcilar)
