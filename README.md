@@ -73,4 +73,4 @@ Finansal_Risk_AI/
 Bu proje **MIT Lisansı** altında lisanslanmıştır.
 
 👨‍💻 Geliştirici
-Furkan Darakcılar GitHub Profilim | Canlı Proje Linki
+Furkan Darakcılar
