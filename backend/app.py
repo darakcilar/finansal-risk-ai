@@ -37,13 +37,33 @@ from model_explainer import (
 from db_logger import init_db, log_prediction
 
 init_db()
-
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "advanced_risk_model.joblib")
 
 print(f"📦 Model yükleniyor: {MODEL_PATH}")
 try:
     model = joblib.load(MODEL_PATH)
     print(f"✅ Model başarıyla yüklendi: {type(model).__name__}")
+    
+    # ==========================================
+    # 🔥 WARM-UP (ISINMA TURU) 🔥
+    # ==========================================
+    print("🔥 Yapay Zeka ve SHAP motoru ısınma turuna başlıyor...")
+    
+    # 1. Sahte bir veri (0'lardan oluşan) hazırlıyoruz
+    dummy_input = np.zeros((1, 10))
+    
+    # 2. Tahmin (Predict) fonksiyonlarını önden çalıştırıyoruz (C++ kütüphaneleri RAM'e yerleşsin diye)
+    model.predict(dummy_input)
+    if hasattr(model, "predict_proba"):
+        model.predict_proba(dummy_input)
+        
+    # 3. En ağırı olan SHAP motorunu ilk kez burada tetikliyoruz
+    _get_importance()
+    get_shap_values(model, dummy_input)
+    
+    print("🚀 Sistem tamamen hazır! Kullanıcılar için ilk bekleme süresi SIFIRLANDI.")
+    # ==========================================
+    
 except Exception as e:
     print(f"❌ Model yüklenemedi: {e}")
     model = None

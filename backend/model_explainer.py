@@ -333,11 +333,20 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
         "recommendations": recommendations_data
     }
 
+# SHAP Explainer'ı bellekte tutmak için global değişken
+_cached_explainer = None
+
 def get_shap_values(model, input_array):
+    global _cached_explainer
     shap_results = []
     try:
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(input_array)
+        # Eğer explainer daha önce kurulmadıysa 1 kez kur (Isınma turunda çalışacak)
+        if _cached_explainer is None:
+            print("⚙️ SHAP Explainer belleğe yükleniyor (Sadece 1 kez çalışır)...")
+            _cached_explainer = shap.TreeExplainer(model)
+            
+        shap_values = _cached_explainer.shap_values(input_array)
+        
         if isinstance(shap_values, list):
             vals = shap_values[1][0] 
         elif hasattr(shap_values, "shape"):
@@ -354,5 +363,5 @@ def get_shap_values(model, input_array):
                 shap_results.append({"feature": label, "value": float(val)})
         shap_results.sort(key=lambda x: abs(x["value"]), reverse=True)
     except Exception as e:
-        pass
+        traceback.print_exc()
     return shap_results
