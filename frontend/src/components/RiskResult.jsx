@@ -6,29 +6,29 @@ function RiskResult({ riskProbability, riskLevel, riskLabel, localExplanation })
   const percentRef = useRef(null)
 
   useEffect(() => {
-    // Animate the gauge
-    const circumference = 2 * Math.PI * 40 // radius = 40
+    // 1. İbre (Gauge) Animasyonu
+    const circumference = 2 * Math.PI * 40
     const offset = circumference - (riskProbability * circumference)
 
     if (gaugeRef.current) {
       gaugeRef.current.style.strokeDasharray = `${circumference}`
       gaugeRef.current.style.strokeDashoffset = `${circumference}`
       
-      // Trigger animation after mount
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          gaugeRef.current.style.transition = 'stroke-dashoffset 1.5s ease-out'
+          gaugeRef.current.style.transition = 'stroke-dashoffset 2.0s cubic-bezier(0.4, 0, 0.2, 1)'
           gaugeRef.current.style.strokeDashoffset = `${offset}`
         })
       })
     }
 
-    // Animate the percentage counter
+    // 2. Yüzdelik Rakamın Sayma Animasyonu (Paketsiz, Saf React)
     if (percentRef.current) {
-      const target = Math.round(riskProbability * 100)
+      const target = riskProbability * 100
       let current = 0
-      const duration = 1500
-      const step = target / (duration / 16)
+      const duration = 2000 // 2 saniye
+      const stepTime = 16 // 60 FPS
+      const step = target / (duration / stepTime)
       
       const timer = setInterval(() => {
         current += step
@@ -37,9 +37,9 @@ function RiskResult({ riskProbability, riskLevel, riskLabel, localExplanation })
           clearInterval(timer)
         }
         if (percentRef.current) {
-          percentRef.current.textContent = `${Math.round(current)}%`
+          percentRef.current.textContent = `${current.toFixed(1)}%`
         }
-      }, 16)
+      }, stepTime)
 
       return () => clearInterval(timer)
     }
@@ -69,36 +69,18 @@ function RiskResult({ riskProbability, riskLevel, riskLabel, localExplanation })
 
       <div className="gauge-container">
         <svg className="gauge-svg" viewBox="0 0 100 100">
-          {/* Background circle */}
-          <circle
-            cx="50"
-            cy="50"
-            r="40"
-            fill="none"
-            stroke="rgba(255,255,255,0.06)"
-            strokeWidth="8"
-          />
-          {/* Animated progress circle */}
+          <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
           <circle
             ref={gaugeRef}
-            cx="50"
-            cy="50"
-            r="40"
-            fill="none"
-            stroke={gaugeColor}
-            strokeWidth="8"
-            strokeLinecap="round"
-            transform="rotate(-90 50 50)"
-            style={{
-              filter: `drop-shadow(0 0 8px ${gaugeColor}40)`,
-            }}
+            cx="50" cy="50" r="40" fill="none" stroke={gaugeColor} strokeWidth="8" strokeLinecap="round" transform="rotate(-90 50 50)"
+            style={{ filter: `drop-shadow(0 0 8px ${gaugeColor}40)` }}
           />
         </svg>
         <div className="gauge-label">
-          <span ref={percentRef} className="gauge-percent" style={{ color: gaugeColor }}>
+          <span ref={percentRef} className="gauge-percent" style={{ color: gaugeColor, fontSize: '2.2rem', fontWeight: 'bold' }}>
             0%
           </span>
-          <span className="gauge-text">Risk Olasılığı</span>
+          <span className="gauge-text" style={{ fontSize: '0.9rem', opacity: 0.8 }}>Risk Olasılığı</span>
         </div>
       </div>
 

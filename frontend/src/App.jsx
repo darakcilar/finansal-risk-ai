@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import Header from './components/Header'
 import RiskForm from './components/RiskForm'
@@ -14,6 +14,90 @@ import PeerComparison from './components/PeerComparison'
 
 const API_BASE = 'https://finansal-risk-ai.onrender.com/api'
 
+// ==========================================================================
+// 🚀 PREMIUM FINTECH YÜKLEME EKRANI (CHECKLIST KONSEPTİ)
+// ==========================================================================
+const PremiumLoadingScreen = () => {
+  const [step, setStep] = useState(0);
+  const steps = [
+    "Veriler güvenli ağ üzerinden alınıyor",
+    "Geçmiş kredi veritabanı taranıyor",
+    "Random Forest karar ağaçları çalıştırılıyor",
+    "SHAP (Açıklanabilirlik) matrisi hesaplanıyor",
+    "Risk skoru ve eylem planı hazırlanıyor"
+  ];
+
+  useEffect(() => {
+    // Toplam 2.5 saniye sürecek şekilde adımları 450ms arayla ilerletiyoruz
+    const timer = setInterval(() => {
+      setStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+    }, 450); 
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <section className="results-section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '16px', background: 'var(--bg-glass)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
+      <div style={{ padding: '40px', width: '100%', maxWidth: '450px' }}>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px', justifyContent: 'center' }}>
+          <div className="modern-spinner" style={{ margin: 0, width: '35px', height: '35px', borderWidth: '3px' }}></div>
+          <h3 style={{ color: 'var(--text-primary)', fontSize: '1.4rem', margin: 0, fontWeight: '700' }}>
+            Yapay Zeka Analiz Ediyor
+          </h3>
+        </div>
+        
+        {/* Adım Adım İlerleyen Kontrol Listesi */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(15, 23, 42, 0.3)', padding: '25px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          {steps.map((text, index) => {
+            const isActive = index === step;
+            const isCompleted = index < step;
+            
+            return (
+              <div key={index} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '14px', 
+                opacity: isCompleted || isActive ? 1 : 0.3,
+                transform: isActive ? 'scale(1.02)' : 'scale(1)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}>
+                {/* İkon / Durum Belirteci */}
+                <div style={{ 
+                  width: '24px', 
+                  height: '24px', 
+                  borderRadius: '50%', 
+                  background: isCompleted ? '#10b981' : (isActive ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.1)'),
+                  border: isActive ? '2px solid #38bdf8' : 'none',
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  color: '#fff',
+                  boxShadow: isActive ? '0 0 10px rgba(56, 189, 248, 0.5)' : 'none'
+                }}>
+                  {isCompleted ? '✓' : (isActive ? '⚡' : '')}
+                </div>
+                
+                {/* Metin */}
+                <span style={{ 
+                  color: isActive ? '#fff' : (isCompleted ? 'var(--text-secondary)' : 'var(--text-muted)'), 
+                  fontSize: '0.95rem',
+                  fontWeight: isActive ? '600' : '400'
+                }}>
+                  {text}
+                  {isActive && <span className="blinking-cursor">...</span>}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
+
 function App() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -23,7 +107,7 @@ function App() {
   const [isAdminView, setIsAdminView] = useState(false)
 
   const handlePredict = async (features, isQuickFill = false) => {
-    setLoading(true)
+    setLoading(true) 
     setError(null)
     setShowResults(false)
     setCurrentFeatures(features)
@@ -44,15 +128,16 @@ function App() {
 
       const data = await response.json()
       setResult(data)
-      setTimeout(() => setShowResults(true), 150)
+      
+      // Animasyonun tamamlanmasını (Tüm tiklerin atılmasını) beklemek için süreyi artırdık
+      setTimeout(() => setShowResults(true), 2500)
     } catch (err) {
       setError(err.message)
     } finally {
-      setLoading(false)
+      setTimeout(() => setLoading(false), 2500)
     }
   }
 
-  // --- KUSURSUZ SAYFA YAPILI VE KUTUCUKLU PDF TASARIMI ---
   const handleDownloadPDF = () => {
     if (!result || !currentFeatures) {
       alert("Lütfen önce bir analiz gerçekleştirin.");
@@ -80,16 +165,15 @@ function App() {
         recHtmlBlocks += `<h3 style="color: #e11d48; font-size: 14px; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px dashed #fecdd3; padding-bottom: 5px; page-break-after: avoid;">⚠️ Öncelikli İyileştirme Alanları</h3>`;
         
         recs.riskFactors.forEach(rf => {
-          // 🚀 ÇÖZÜM 1: Renk eşleşmesini garantiye almak için tüm boşlukları siliyoruz (trim)
           const sev = String(rf.severity || '').toLowerCase().trim();
-          let bgHex = '#fdf2f8'; // Varsayılan Kırmızımsı (Critical)
+          let bgHex = '#fdf2f8'; 
           let borderHex = '#f43f5e';
           
           if (sev === 'warning') {
-            bgHex = '#fffbeb'; // Sarı (Warning)
+            bgHex = '#fffbeb'; 
             borderHex = '#f59e0b';
           } else if (sev === 'info') {
-            bgHex = '#eef2ff'; // Mavi (Info)
+            bgHex = '#eef2ff'; 
             borderHex = '#3b82f6';
           }
 
@@ -208,7 +292,6 @@ function App() {
       image: { type: 'jpeg', quality: 0.98 }, 
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, 
-      // 🚀 ÇÖZÜM 3: 'legacy' modunu ekledik. Bu sayede html2pdf__page-break class'ı gerçek bir sayfa kesici olarak çalışacak.
       pagebreak: { mode: ['css', 'legacy', 'avoid-all'] } 
     };
     
@@ -225,7 +308,7 @@ function App() {
 
   return (
     <>
-      <div className="app">
+      <div className="app dark">
         <div className="bg-orbs">
           <div className="orb orb-1"></div>
           <div className="orb orb-2"></div>
@@ -261,7 +344,7 @@ function App() {
                   </div>
                 </div>
 
-                <RiskForm onSubmit={handlePredict} loading={loading} />
+                <RiskForm onSubmit={handlePredict} loading={false} />
                 
                 {error && (
                   <div className="error-banner" role="alert">
@@ -269,7 +352,10 @@ function App() {
                   </div>
                 )}
               </section>
-                  {result && showResults ? (
+
+              {loading ? (
+                <PremiumLoadingScreen />
+              ) : result && showResults ? (
                 <section className="results-section" id="results-section">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.2rem' }}>Analiz Raporu</h3>
@@ -289,7 +375,6 @@ function App() {
                   <button className="btn-reset" onClick={handleReset} style={{ marginTop: '10px' }}>Yeni Analiz Yap</button>
                 </section>
               ) : (
-                /* 🚀 YENİ EKLENEN BOŞ DURUM (EMPTY STATE) EKRANI */
                 <section className="results-section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', border: '1px dashed rgba(148, 163, 184, 0.2)', borderRadius: '16px', background: 'rgba(15, 23, 42, 0.2)' }}>
                   <div style={{ textAlign: 'center', padding: '40px' }}>
                     <div style={{ fontSize: '4rem', marginBottom: '15px', animation: 'float 6s ease-in-out infinite' }}>
