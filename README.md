@@ -1,37 +1,46 @@
-# Finansal Risk AI (XAI Destekli)
+# 🚀 Finansal Risk AI — Explainable Artificial Intelligence (XAI)
 
-Finansal Risk AI, kullanıcıların finansal verilerini analiz ederek kredi risklerini değerlendiren ve bu kararları **Explainable AI (XAI - Açıklanabilir Yapay Zeka)** teknikleri ile gerekçelendiren uçtan uca bir analiz platformudur.
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![React](https://img.shields.io/badge/React-18.x-61DAFB.svg)
+![Flask](https://img.shields.io/badge/Flask-Backend-000000.svg)
+![Machine Learning](https://img.shields.io/badge/ML-Random_Forest-green.svg)
+![Status](https://img.shields.io/badge/Status-Live-brightgreen.svg)
 
-## 🚀 Proje Hakkında
-Bu proje, makine öğrenimi modellerinin "kara kutu" (black box) yapısını şeffaf hale getirmeyi amaçlar. Kullanıcılar finansal bilgilerini girer, sistem Random Forest modeli ile risk skorunu hesaplar ve **SHAP (SHapley Additive exPlanations)** değerlerini kullanarak sonucun neden "yüksek" veya "düşük" riskli olduğunu detaylandırır.
+🌐 **Canlı Demo:** [Finansal Risk AI Web Sitesi](https://finansal-risk-ai-furkand.onrender.com/)
+
+Finansal Risk AI, kullanıcıların finansal verilerini analiz ederek kredi risklerini değerlendiren ve bu tahminleri **Explainable AI (XAI - Açıklanabilir Yapay Zeka)** teknikleri ile şeffaf bir şekilde gerekçelendiren "Full-Stack" bir analiz platformudur.
+
+Makine öğrenimi modellerinin geleneksel "kara kutu" (black box) yapısını yıkarak, kullanıcılara risk skorlarının arkasındaki *matematiksel nedenleri* şeffaf, anlaşılır ve dinamik bir dille sunar.
+
+## ✨ Öne Çıkan Özellikler
+
+* 📊 **Anlık Risk Analizi:** Finansal göstergeleri işleyerek "Düşük", "Orta" veya "Yüksek" risk tahmini üretir.
+* 🧠 **SHAP (Açıklanabilir YZ) Analizi:** Modelin kararlarını etkileyen faktörleri detaylı **SHAP Waterfall** grafikleri ile görselleştirir.
+* 🔮 **What-If (Ne Olurdu?) Simülatörü:** Kullanıcıların verilerini (örneğin; "Borcum %10 daha az olsaydı riskim ne olurdu?") anlık olarak değiştirip yeni skoru milisaniyeler içinde görebilmesini sağlar.
+* 🌳 **Karar Ağacı İzleme:** Algoritmanın hangi eşik değerlerine (threshold) göre karar verdiğini adım adım gösterir.
+* 👥 **Akran Karşılaştırması:** Kullanıcının mevcut finansal durumunu, genel veri setindeki ideal ortalamalarla kıyaslar.
+* 📄 **Profesyonel PDF Raporlama:** Analiz sonuçlarını, dinamik arka plan renkleri ve detaylı XAI tavsiyeleriyle birlikte tek tıkla PDF olarak dışa aktarır.
+* 🔐 **Sistem Yöneticisi Paneli:** Geçmiş analizlerin denetim kayıtlarını (log) ve sistem eğitim istatistiklerini izleme imkanı sunar.
+* 📱 **%100 Mobil Uyum (Responsive):** İster masaüstü ister mobil cihazlarda kusursuz bir kullanıcı deneyimi sunar.
 
 ## 🛠️ Teknoloji Yığını (Tech Stack)
 
-### Frontend
-- **React Native (Expo):** Web ve mobil platformlarda çalışan evrensel bir arayüz.
-- **Expo Web:** Tarayıcı üzerinden hızlı analiz.
-- **React Native SVG:** SHAP değerleri görselleştirmeleri için.
+Uygulama, modern ve ölçeklenebilir bir mikroservis (Microservice) mimarisi üzerine kurulmuştur:
 
-### Backend
-- **Python (Flask):** API sunucusu.
-- **Scikit-Learn:** Random Forest modeli (Kaggle "Give Me Some Credit" veri seti ile eğitilmiştir).
-- **SHAP:** Modelin kararlarını açıklamak için kullanılan kütüphane.
-- **SQLite:** Analiz geçmişini ve denetim kayıtlarını tutmak için.
+**Frontend (Vitrin):**
+- **React.js (Vite):** Hızlı ve modern kullanıcı arayüzü.
+- **Recharts & HTML2PDF:** Grafiksel görselleştirmeler ve raporlama motoru.
+- **Saf CSS3:** Cihaz bağımsız, esnek (responsive) tasarım.
 
-## ✨ Özellikler
-*   **Risk Analizi:** Finansal göstergelerle anlık risk tahmini.
-*   **XAI (Açıklanabilir YZ):** Risk skorunun matematiksel nedenlerini gösteren SHAP Waterfall grafikleri.
-*   **Karar Ağacı İzleme:** Modelin hangi eşik değerlerine göre karar verdiğini adım adım gösterir.
-*   **PDF Raporlama:** Analiz sonuçlarını profesyonel bir rapor olarak dışa aktarma.
-*   **Admin Paneli:** Geçmiş analizlerin denetimi ve sistem istatistikleri.
-*   **Hızlı Doldur:** Test amaçlı hızlı veri girişi (Düşük/Yüksek risk).
+**Backend (Beyin):**
+- **Python & Flask:** RESTful API sunucusu ve veri yönlendirme.
+- **Scikit-Learn:** 150.000 veri ile eğitilmiş Random Forest Sınıflandırma Modeli.
+- **SHAP (SHapley Additive exPlanations):** Model açıklanabilirliği kütüphanesi.
+- **SQLite:** Güvenli ve hafif log/denetim veritabanı.
 
-## ⚙️ Kurulum
+## ⚙️ Kurulum ve Çalıştırma
 
-### Gereksinimler
-- Node.js (v18+)
-- Python 3.8+
-- Git
+Projeyi kendi bilgisayarınızda çalıştırmak için aşağıdaki adımları izleyin. (Gereksinimler: Node.js v18+ ve Python 3.8+)
 
 ### 1. Backend Kurulumu
 ```bash
@@ -41,27 +50,27 @@ source venv/bin/activate  # Windows için: venv\Scripts\activate
 pip install -r requirements.txt
 python app.py
 ```
-*(Not: `models/advanced_risk_model.joblib` dosyasının dizinde olduğundan emin olun.)*
+(Not: models/advanced_risk_model.joblib dosyasının ilgili dizinde bulunduğundan emin olun. API varsayılan olarak http://127.0.0.1:5002 adresinde çalışacaktır.)
 
 ### 2. Frontend Kurulumu
 ```bash
 cd frontend
 npm install
-npx expo start --web
+npm run dev
 ```
+(Uygulama tarayıcınızda otomatik olarak açılacaktır.)
 
 ## 🏗️ Proje Yapısı
 ```text
 Finansal_Risk_AI/
-├── backend/          # Flask API, ML Modeli ve DB Logger
-├── frontend/         # React Native (Expo) Uygulaması
+├── backend/          # Flask API, ML Modeli, XAI Mantığı ve Veritabanı
+├── frontend/         # React.js Uygulaması, Komponentler ve Stiller
 ├── .gitignore        # Git takibi dışında tutulan dosyalar
-└── README.md
+└── README.md         # Proje dökümantasyonu
 ```
 
 ## 📝 Lisans
 Bu proje **MIT Lisansı** altında lisanslanmıştır.
 
-## 👨‍💻 Geliştirici
-**Furkan Darakcılar**  
-[GitHub Profilim](https://github.com/darakcilar)
+👨‍💻 Geliştirici
+Furkan Darakcılar
