@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
 import Header from './components/Header'
 import RiskForm from './components/RiskForm'
@@ -21,19 +21,6 @@ function App() {
   const [showResults, setShowResults] = useState(false)
   const [currentFeatures, setCurrentFeatures] = useState(null)
   const [isAdminView, setIsAdminView] = useState(false)
-  
-  // 🚀 TEMA STATE'İ (Varsayılan olarak karanlık başlar)
-  const [theme, setTheme] = useState('dark')
-
-  // HTML body rengini temaya göre kesin olarak ayarlayan kilit mekanizma
-  useEffect(() => {
-    document.body.style.backgroundColor = theme === 'light' ? '#f8fafc' : '#0f172a';
-    document.body.style.color = theme === 'light' ? '#0f172a' : '#f8fafc';
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark')
-  }
 
   const handlePredict = async (features, isQuickFill = false) => {
     setLoading(true)
@@ -93,15 +80,16 @@ function App() {
         recHtmlBlocks += `<h3 style="color: #e11d48; font-size: 14px; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px dashed #fecdd3; padding-bottom: 5px; page-break-after: avoid;">⚠️ Öncelikli İyileştirme Alanları</h3>`;
         
         recs.riskFactors.forEach(rf => {
+          // 🚀 ÇÖZÜM 1: Renk eşleşmesini garantiye almak için tüm boşlukları siliyoruz (trim)
           const sev = String(rf.severity || '').toLowerCase().trim();
-          let bgHex = '#fdf2f8'; 
+          let bgHex = '#fdf2f8'; // Varsayılan Kırmızımsı (Critical)
           let borderHex = '#f43f5e';
           
           if (sev === 'warning') {
-            bgHex = '#fffbeb'; 
+            bgHex = '#fffbeb'; // Sarı (Warning)
             borderHex = '#f59e0b';
           } else if (sev === 'info') {
-            bgHex = '#eef2ff'; 
+            bgHex = '#eef2ff'; // Mavi (Info)
             borderHex = '#3b82f6';
           }
 
@@ -220,6 +208,7 @@ function App() {
       image: { type: 'jpeg', quality: 0.98 }, 
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, 
+      // 🚀 ÇÖZÜM 3: 'legacy' modunu ekledik. Bu sayede html2pdf__page-break class'ı gerçek bir sayfa kesici olarak çalışacak.
       pagebreak: { mode: ['css', 'legacy', 'avoid-all'] } 
     };
     
@@ -236,18 +225,7 @@ function App() {
 
   return (
     <>
-      {/* 🚀 app class'ının yanına dinamik olarak 'light' veya 'dark' sınıfı ekleniyor */}
-      <div className={`app ${theme}`}>
-        
-        {/* Güneş/Ay Tema Değiştirme Butonu */}
-        <button 
-          className="theme-toggle-btn" 
-          onClick={toggleTheme}
-          title={theme === 'dark' ? "Aydınlık Temaya Geç" : "Karanlık Temaya Geç"}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
-
+      <div className="app">
         <div className="bg-orbs">
           <div className="orb orb-1"></div>
           <div className="orb orb-2"></div>
@@ -323,7 +301,7 @@ function App() {
           alignItems: 'center',
           padding: '24px',
           marginTop: 'auto',
-          borderTop: '1px solid var(--border-glass)'
+          borderTop: '1px solid rgba(148, 163, 184, 0.1)'
         }}>
           <div style={{ textAlign: 'center' }}>
             <p style={{ margin: 0 }}>Finansal Risk AI — Explainable Artificial Intelligence (XAI)</p>
@@ -337,9 +315,9 @@ function App() {
               right: '24px', 
               top: '50%',
               transform: 'translateY(-50%)',
-              background: isAdminView ? 'var(--bg-glass-strong)' : 'var(--bg-glass)', 
+              background: isAdminView ? '#1e293b' : 'rgba(15, 23, 42, 0.6)', 
               border: '1px solid #38bdf8', 
-              color: theme === 'light' ? '#0284c7' : '#38bdf8', 
+              color: '#38bdf8', 
               cursor: 'pointer', 
               borderRadius: '6px', 
               padding: '6px 12px',
@@ -351,6 +329,14 @@ function App() {
               alignItems: 'center',
               gap: '6px',
               zIndex: 10
+            }}
+            onMouseOver={(e) => { 
+              e.currentTarget.style.background = '#38bdf8'; 
+              e.currentTarget.style.color = '#0f172a';
+            }}
+            onMouseOut={(e) => { 
+              e.currentTarget.style.background = isAdminView ? '#1e293b' : 'rgba(15, 23, 42, 0.6)'; 
+              e.currentTarget.style.color = '#38bdf8';
             }}
           >
             <span style={{ fontSize: '12px' }}>{isAdminView ? '❌' : '🔐'}</span> 
