@@ -269,8 +269,7 @@ function App() {
                   </div>
                 )}
               </section>
-
-              {result && showResults && (
+                  {result && showResults ? (
                 <section className="results-section" id="results-section">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.2rem' }}>Analiz Raporu</h3>
@@ -288,6 +287,25 @@ function App() {
                   <Recommendations recommendations={result.recommendations} />
 
                   <button className="btn-reset" onClick={handleReset} style={{ marginTop: '10px' }}>Yeni Analiz Yap</button>
+                </section>
+              ) : (
+                /* 🚀 YENİ EKLENEN BOŞ DURUM (EMPTY STATE) EKRANI */
+                <section className="results-section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', border: '1px dashed rgba(148, 163, 184, 0.2)', borderRadius: '16px', background: 'rgba(15, 23, 42, 0.2)' }}>
+                  <div style={{ textAlign: 'center', padding: '40px' }}>
+                    <div style={{ fontSize: '4rem', marginBottom: '15px', animation: 'float 6s ease-in-out infinite' }}>
+                      🤖
+                    </div>
+                    <h3 style={{ color: 'var(--text-primary)', fontSize: '1.4rem', marginBottom: '10px' }}>Yapay Zeka Analize Hazır</h3>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '350px', margin: '0 auto', lineHeight: '1.6' }}>
+                      Müşterinin finansal verilerini sol taraftaki forma girerek <b>"Risk Analizi Yap"</b> butonuna tıklayın.
+                    </p>
+                    
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '25px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      <span style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(56, 189, 248, 0.2)' }}>🌳 Random Forest</span>
+                      <span style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(16, 185, 129, 0.2)' }}>🧠 SHAP XAI</span>
+                      <span style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(139, 92, 246, 0.2)' }}>📄 PDF Raporu</span>
+                    </div>
+                  </div>
                 </section>
               )}
             </div>
