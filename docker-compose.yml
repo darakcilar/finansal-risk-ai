@@ -1,0 +1,19 @@
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5002:5002"
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped # Sistem çökerse veya bilgisayar kapanıp açılırsa otomatik yeniden başlat
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80" # Nginx'in 80 portunu, bilgisayarımızda 3000 portuna bağlıyoruz
+    depends_on:
+      - backend # Önce backend'in ayağa kalkmasını bekle
+    restart: unless-stopped

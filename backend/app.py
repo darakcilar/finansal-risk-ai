@@ -43,31 +43,12 @@ print(f"📦 Model yükleniyor: {MODEL_PATH}")
 try:
     model = joblib.load(MODEL_PATH)
     print(f"✅ Model başarıyla yüklendi: {type(model).__name__}")
-    
-    # ==========================================
-    # 🔥 WARM-UP (ISINMA TURU) 🔥
-    # ==========================================
-    print("🔥 Yapay Zeka ve SHAP motoru ısınma turuna başlıyor...")
-    
-    # 1. Sahte bir veri (0'lardan oluşan) hazırlıyoruz
-    dummy_input = np.zeros((1, 10))
-    
-    # 2. Tahmin (Predict) fonksiyonlarını önden çalıştırıyoruz (C++ kütüphaneleri RAM'e yerleşsin diye)
-    model.predict(dummy_input)
-    if hasattr(model, "predict_proba"):
-        model.predict_proba(dummy_input)
-        
-    # 3. En ağırı olan SHAP motorunu ilk kez burada tetikliyoruz
-    _get_importance()
-    get_shap_values(model, dummy_input)
-    
-    print("🚀 Sistem tamamen hazır! Kullanıcılar için ilk bekleme süresi SIFIRLANDI.")
-    # ==========================================
-    
 except Exception as e:
     print(f"❌ Model yüklenemedi: {e}")
     model = None
 
+
+# Fonksiyonlar Model Yüklendikten SONRA tanımlanmalı
 _cached_importance = None
 
 def _get_importance():
@@ -75,6 +56,32 @@ def _get_importance():
     if _cached_importance is None and model is not None:
         _cached_importance = get_feature_importance(model)
     return _cached_importance or []
+
+
+# ==========================================
+# 🔥 GÜVENLİ WARM-UP (ISINMA TURU) 🔥
+# ==========================================
+# Isınma turu fonksiyonlardan SONRA çağrılıyor ki NameError vermesin
+if model is not None:
+    try:
+        print("🔥 Yapay Zeka ve SHAP motoru ısınma turuna başlıyor...")
+        
+        # 1. Sahte bir veri (0'lardan oluşan) hazırlıyoruz
+        dummy_input = np.zeros((1, 10))
+        
+        # 2. Tahmin (Predict) fonksiyonlarını önden çalıştırıyoruz
+        model.predict(dummy_input)
+        if hasattr(model, "predict_proba"):
+            model.predict_proba(dummy_input)
+            
+        # 3. En ağırı olan SHAP motorunu ilk kez burada tetikliyoruz
+        _get_importance()
+        get_shap_values(model, dummy_input)
+        
+        print("🚀 Sistem tamamen hazır! Kullanıcılar için ilk bekleme süresi SIFIRLANDI.")
+    except Exception as e:
+        print(f"⚠️ Isınma turu atlandı (Sistem normal çalışmaya devam edecek): {e}")
+# ==========================================
 
 
 @app.route("/api/health", methods=["GET"])
@@ -174,8 +181,6 @@ def predict():
             "xai_advice": local_explanation.get("xai_advice", ""),
             "feature_importances": importances,
             "shap_values": shap_values_result,
-            
-            # BURADA BOŞ LİSTE YERİNE BOŞ SÖZLÜK {} DÖNÜYORUZ Kİ REACT HATA VERMESİN
             "recommendations": local_explanation.get("recommendations", {})
         })
 
@@ -215,8 +220,6 @@ def explain():
             "xai_advice": local_explanation.get("xai_advice", ""), 
             "feature_importances": importances,
             "shap_values": shap_values_result,
-            
-            # Explain endpointi için de aynısı geçerli:
             "recommendations": local_explanation.get("recommendations", {})
         })
     except Exception as e:
