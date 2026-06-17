@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import TrainingStatsView from './TrainingStatsView'; // Eğitim İstatistikleri Bileşeni
 
@@ -7,7 +7,7 @@ function AdminDashboard({ onBack, apiBase = '/api' }) {
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false); // KESİNLİKLE FALSE BAŞLAMALI
   const [credentials, setCredentials] = useState({ username: '', password: '' });
-  const [isClearing, setIsClearing] = useState(false); // Silme animasyonu için state
+  const [isClearing] = useState(false); // Silme animasyonu için state
 
   // Konsoldan durumu izlemek için koruma logu
   console.log("🔐 Admin Giriş Kontrolü (isLoggedIn):", isLoggedIn);
@@ -27,6 +27,7 @@ function AdminDashboard({ onBack, apiBase = '/api' }) {
       } else {
         alert('Hatalı kullanıcı adı veya şifre!');
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       alert('Giriş servisine ulaşılamadı. Python sunucusunun çalıştığından emin olun.');
     }
@@ -34,6 +35,7 @@ function AdminDashboard({ onBack, apiBase = '/api' }) {
 
   useEffect(() => {
     if (isLoggedIn) {
+      // eslint-disable-next-line react-hooks/immutability
       fetchLogs();
     }
   }, [isLoggedIn, apiBase]);
@@ -58,27 +60,23 @@ function AdminDashboard({ onBack, apiBase = '/api' }) {
   };
 
   const handleClearLogs = async () => {
-    const isConfirmed = window.confirm("⚠️ DİKKAT!\nŞu ana kadar yapılan tüm analiz kayıtları kalıcı olarak silinecektir. Bu işlem geri alınamaz.\n\nOnaylıyor musunuz?");
-    
-    if (!isConfirmed) return;
+    if (!window.confirm("Tüm analiz geçmişini KALICI OLARAK silmek istediğinize emin misiniz?")) return;
 
-    setIsClearing(true);
     try {
-      const response = await fetch(`${apiBase}/logs/clear`, {
+      // 🚀 Backend'e gerçek bir DELETE (Silme) isteği gönderiyoruz
+      const response = await fetch(`${apiBase}/logs`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        setLogs([]);
-        alert("Başarılı: Tüm analiz kayıtları veritabanından silindi.");
+        setLogs([]); // Ekrandan da sil
+        alert("Veritabanı başarıyla temizlendi!");
       } else {
-        alert("Hata: Kayıtlar silinemedi.");
+        alert("Silme işlemi başarısız oldu.");
       }
     } catch (err) {
       console.error("Silme hatası:", err);
-      alert("Sunucuya bağlanırken bir hata oluştu.");
-    } finally {
-      setIsClearing(false);
+      alert("Sunucuya ulaşılamadı.");
     }
   };
 

@@ -271,20 +271,23 @@ def get_logs():
     except Exception as e:
         return jsonify({"error": f"Loglar okunamadı: {str(e)}"}), 500
 
-
-@app.route("/api/logs/clear", methods=["DELETE"])
+# 🚀 YENİ: Veritabanındaki tüm kayıtları kalıcı olarak silme uç noktası
+@app.route('/api/logs', methods=['DELETE', 'OPTIONS'])
 def clear_logs():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
     try:
-        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
-        conn = sqlite3.connect(db_path)
-        c = conn.cursor()
-        c.execute('DELETE FROM predictions')
+        conn = get_db_connection()
+        # SQL komutu ile tüm satırları uçuruyoruz
+        conn.execute('DELETE FROM logs')
+        # İşlemi veritabanına kalıcı olarak kaydediyoruz (Burası kritik!)
         conn.commit()
         conn.close()
-        return jsonify({"success": True, "message": "Tüm kayıtlar başarıyla silindi."})
+        return jsonify({"message": "Tüm kayıtlar başarıyla silindi."}), 200
     except Exception as e:
-        return jsonify({"error": f"Silme işlemi başarısız: {str(e)}"}), 500
-
+        return jsonify({"error": str(e)}), 500
+    
 if __name__ == "__main__":
     flask_port = int(os.environ.get("PYTHON_PORT", 5002))
     flask_host = os.environ.get("PYTHON_HOST", "127.0.0.1")
