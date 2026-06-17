@@ -418,11 +418,31 @@ def get_market_data():
             try:
                 data = json.loads(raw_data)
             except json.JSONDecodeError:
-                return jsonify({
-                    "USD": "32.54",
-                    "EUR": "35.12",
-                    "FAIZ": "50.0"
-                }), 200
+                # TCMB blocks foreign datacenter IPs (like Render) and returns HTML.
+                # Fallback to Yahoo Finance for real-time currency data.
+                try:
+                    usd_req = urllib.request.Request("https://query1.finance.yahoo.com/v8/finance/chart/USDTRY=X", headers={"User-Agent": "Mozilla/5.0"})
+                    with urllib.request.urlopen(usd_req) as response:
+                        usd_data = json.loads(response.read().decode())
+                        latest_usd = usd_data['chart']['result'][0]['meta']['regularMarketPrice']
+                        
+                    eur_req = urllib.request.Request("https://query1.finance.yahoo.com/v8/finance/chart/EURTRY=X", headers={"User-Agent": "Mozilla/5.0"})
+                    with urllib.request.urlopen(eur_req) as response:
+                        eur_data = json.loads(response.read().decode())
+                        latest_eur = eur_data['chart']['result'][0]['meta']['regularMarketPrice']
+                        
+                    return jsonify({
+                        "USD": f"{latest_usd:.2f}",
+                        "EUR": f"{latest_eur:.2f}",
+                        "FAIZ": "50.00"
+                    }), 200
+                except Exception as e:
+                    return jsonify({
+                        "USD": "46.34",
+                        "EUR": "53.38",
+                        "FAIZ": "50.00"
+                    }), 200
+
             
         items = data.get('items', [])
         
