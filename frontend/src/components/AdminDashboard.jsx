@@ -2,10 +2,10 @@ import  { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import TrainingStatsView from './TrainingStatsView'; // Eğitim İstatistikleri Bileşeni
 
-function AdminDashboard({ onBack, apiBase = '/api' }) {
+function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // KESİNLİKLE FALSE BAŞLAMALI
+  const [isLoggedIn, setIsLoggedIn] = useState(alreadyLoggedIn);
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [isClearing] = useState(false); // Silme animasyonu için state
 
@@ -171,13 +171,6 @@ function AdminDashboard({ onBack, apiBase = '/api' }) {
             onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
           >
             <span>🗑️</span> Kayıtları Temizle
-          </button>
-
-          <button onClick={onBack} style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s' }}
-            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'; }}
-          >
-            Kapat
           </button>
         </div>
       </div>

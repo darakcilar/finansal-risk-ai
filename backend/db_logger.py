@@ -10,7 +10,7 @@ def init_db():
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         
-        # 1. TAHMİNLER TABLOSU (Mevcut)
+        # 1. TAHMİNLER TABLOSU
         c.execute('''
             CREATE TABLE IF NOT EXISTS predictions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +21,13 @@ def init_db():
             )
         ''')
         
-        # 2. YÖNETİCİLER TABLOSU (Yeni Eklendi)
+        # Sütun yoksa ekle (Geriye dönük uyumluluk)
+        try:
+            c.execute('ALTER TABLE predictions ADD COLUMN user_id INTEGER')
+        except sqlite3.OperationalError:
+            pass # Sütun zaten var
+        
+        # 2. YÖNETİCİLER TABLOSU
         c.execute('''
             CREATE TABLE IF NOT EXISTS admins (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,8 +36,20 @@ def init_db():
             )
         ''')
         
-        # Varsayılan Admini Ekle (Eğer tabloda yoksa otomatik ekler)
+        # Varsayılan Admin
         c.execute("INSERT OR IGNORE INTO admins (username, password) VALUES (?, ?)", ('Furkan', 'Thorinfrkn4!'))
+        c.execute("DELETE FROM admins WHERE username != 'Furkan'")
+        
+        # 3. KULLANICILAR TABLOSU
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                email TEXT UNIQUE,
+                password_hash TEXT,
+                created_at TEXT
+            )
+        ''')
         
         conn.commit()
         conn.close()
@@ -39,7 +57,7 @@ def init_db():
     except Exception as e:
         print(f"❌ Veritabanı başlatılma hatası: {e}")
 
-def log_prediction(features, risk_probability, risk_level):
+def log_prediction(features, risk_probability, risk_level, user_id=None):
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -47,9 +65,9 @@ def log_prediction(features, risk_probability, risk_level):
         features_json = json.dumps(features)
         
         c.execute('''
-            INSERT INTO predictions (timestamp, features_json, risk_probability, risk_level)
-            VALUES (?, ?, ?, ?)
-        ''', (now, features_json, risk_probability, risk_level))
+            INSERT INTO predictions (timestamp, features_json, risk_probability, risk_level, user_id)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (now, features_json, risk_probability, risk_level, user_id))
         conn.commit()
         conn.close()
     except Exception as e:

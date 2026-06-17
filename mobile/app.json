@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Finansal Risk AI",
+    "slug": "finansal-risk-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050a1a",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#050a1a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.furkandarakcilar.finansalriskai"
+    },
+    "android": {
+      "package": "com.furkandarakcilar.finansalriskai",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#050a1a",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "dde830ec-9c46-4150-8f0e-433ca149b0b3"
+      }
+    },
+    "plugins": [
+      "expo-sharing"
+    ],
+    "owner": "darakcilar"
+  }
+}

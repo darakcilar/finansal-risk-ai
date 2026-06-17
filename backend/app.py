@@ -16,7 +16,10 @@ import joblib
 import numpy as np
 import sqlite3
 import json
+import urllib.request
+from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from flask_cors import CORS 
 
@@ -108,25 +111,127 @@ def feature_importance():
     return jsonify({"importances": _get_importance()})
 
 
-@app.route("/api/login", methods=["POST"])
-def login():
+@app.route("/api/auth/register", methods=["POST"])
+def auth_register():
     try:
         data = request.get_json()
-        username = data.get("username")
+        name = data.get("name")
+        email = data.get("email")
         password = data.get("password")
+        
+        if not name or not email or not password:
+            return jsonify({"success": False, "error": "Eksik bilgi"}), 400
+            
+        hashed_password = generate_password_hash(password)
+        now = datetime.now().isoformat()
         
         db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
         conn = sqlite3.connect(db_path)
         c = conn.cursor()
-        c.execute("SELECT * FROM admins WHERE username = ? AND password = ?", (username, password))
+        
+        try:
+            c.execute("INSERT INTO users (name, email, password_hash, created_at) VALUES (?, ?, ?, ?)", (name, email, hashed_password, now))
+            user_id = c.lastrowid
+            conn.commit()
+            conn.close()
+            return jsonify({"success": True, "user": {"id": user_id, "name": name, "email": email, "role": "user"}})
+        except sqlite3.IntegrityError:
+            conn.close()
+            return jsonify({"success": False, "error": "Bu e-posta adresi zaten kullanımda."}), 400
+            
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/auth/login", methods=["POST"])
+def auth_login():
+    try:
+        data = request.get_json()
+        email = data.get("email") 
+        password = data.get("password")
+        role = data.get("role", "user")
+        
+        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        
+        if role == "admin":
+            c.execute("SELECT * FROM admins WHERE username = ? AND password = ?", (email, password))
+            admin = c.fetchone()
+            conn.close()
+            if admin:
+                return jsonify({"success": True, "user": {"id": admin[0], "name": "Sistem Yöneticisi", "email": admin[1], "role": "admin"}})
+            else:
+                return jsonify({"success": False, "error": "Hatalı yönetici girişi"}), 401
+        else:
+            c.execute("SELECT * FROM users WHERE email = ?", (email,))
+            user = c.fetchone()
+            conn.close()
+            if user and check_password_hash(user[3], password):
+                return jsonify({"success": True, "user": {"id": user[0], "name": user[1], "email": user[2], "role": "user"}})
+            else:
+                return jsonify({"success": False, "error": "Hatalı e-posta veya şifre"}), 401
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/auth/change-password", methods=["POST"])
+def auth_change_password():
+    try:
+        data = request.get_json()
+        user_id = data.get("user_id")
+        old_password = data.get("old_password")
+        new_password = data.get("new_password")
+        
+        if not user_id or not old_password or not new_password:
+            return jsonify({"success": False, "error": "Eksik bilgi"}), 400
+            
+        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        
+        c.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         user = c.fetchone()
+        
+        if user and check_password_hash(user[3], old_password):
+            new_hash = generate_password_hash(new_password)
+            c.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_id))
+            conn.commit()
+            conn.close()
+            return jsonify({"success": True})
+        else:
+            conn.close()
+            return jsonify({"success": False, "error": "Mevcut şifre hatalı"}), 401
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/user/history", methods=["GET"])
+def get_user_history():
+    user_id = request.args.get("user_id")
+    if not user_id: return jsonify({"history": []})
+    try:
+        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT * FROM predictions WHERE user_id = ? ORDER BY id DESC", (user_id,))
+        rows = c.fetchall()
         conn.close()
         
-        if user: return jsonify({"success": True, "message": "Giriş başarılı"})
-        else: return jsonify({"success": False, "message": "Hatalı kullanıcı adı veya şifre"}), 401
+        history = []
+        for r in rows:
+            try:
+                features = json.loads(r["features_json"]) if r["features_json"] else {}
+            except:
+                features = {}
+            history.append({
+                "id": r["id"],
+                "date": r["timestamp"],
+                "risk_probability": r["risk_probability"],
+                "risk_level": r["risk_level"],
+                "features": features
+            })
+        return jsonify({"history": history})
     except Exception as e:
-        return jsonify({"error": f"Giriş işlemi sırasında hata oluştu: {str(e)}"}), 500
-
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/predict", methods=["POST"])
 def predict():
@@ -139,10 +244,7 @@ def predict():
 
         features = data["features"]
         skip_log = features.pop("__skip_log", False) or data.get("skip_log", False)
-
-        is_low_test = (features.get("age") == 35 and features.get("MonthlyIncome") == 8000 and features.get("NumberOfOpenCreditLinesAndLoans") == 4)
-        is_high_test = (features.get("age") == 24 and features.get("MonthlyIncome") == 5000 and features.get("NumberOfOpenCreditLinesAndLoans") == 8)
-        if is_low_test or is_high_test: skip_log = True
+        user_id = data.get("user_id", None)
 
         feature_order = list(model.feature_names_in_) if hasattr(model, "feature_names_in_") else FEATURE_NAMES
         input_values = []
@@ -169,7 +271,7 @@ def predict():
         local_explanation = generate_local_explanation(model, input_array, importances, risk_probability)
         shap_values_result = get_shap_values(model, input_array)
 
-        if not skip_log: log_prediction(features, risk_probability, risk_level)
+        if not skip_log: log_prediction(features, risk_probability, risk_level, user_id)
 
         return jsonify({
             "prediction": prediction,
@@ -293,6 +395,56 @@ def clear_logs():
         return jsonify({"message": "Tüm kayıtlar başarıyla silindi."}), 200
     except Exception as e:
         traceback.print_exc() # Terminalde hatayı detaylı görmek için
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/market-data', methods=['GET'])
+def get_market_data():
+    try:
+        api_key = os.getenv("TCMB_API_KEY")
+        if not api_key:
+            return jsonify({"error": "TCMB API key not configured"}), 500
+            
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=5)
+        
+        start_str = start_date.strftime("%d-%m-%Y")
+        end_str = end_date.strftime("%d-%m-%Y")
+        
+        url = f"https://evds2.tcmb.gov.tr/service/evds/series=TP.DK.USD.A.YTL-TP.DK.EUR.A.YTL-TP.AOF.AOF&startDate={start_str}&endDate={end_str}&type=json"
+        
+        req = urllib.request.Request(url, headers={"key": api_key})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode())
+            
+        items = data.get('items', [])
+        
+        latest_usd = None
+        latest_eur = None
+        latest_faiz = None
+        
+        for item in reversed(items):
+            if latest_usd is None and item.get('TP_DK_USD_A_YTL'):
+                latest_usd = item.get('TP_DK_USD_A_YTL')
+            if latest_eur is None and item.get('TP_DK_EUR_A_YTL'):
+                latest_eur = item.get('TP_DK_EUR_A_YTL')
+            if latest_faiz is None and item.get('TP_AOF_AOF'):
+                latest_faiz = item.get('TP_AOF_AOF')
+                
+            if latest_usd and latest_eur and latest_faiz:
+                break
+                
+        if latest_usd is None or latest_eur is None:
+            return jsonify({"error": "No data available from TCMB"}), 404
+            
+        return jsonify({
+            "USD": latest_usd,
+            "EUR": latest_eur,
+            "FAIZ": latest_faiz,
+            "source": "TCMB EVDS"
+        }), 200
+        
+    except Exception as e:
+        print("TCMB API Error:", traceback.format_exc())
         return jsonify({"error": str(e)}), 500
     
 if __name__ == "__main__":

@@ -148,9 +148,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--gradient-primary);
-  border-radius: var(--radius-md);
-  color: white;
+  background: rgba(56, 189, 248, 0.15);
+  border-radius: 50%;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--sky-blue);
   flex-shrink: 0;
 }
 
@@ -355,7 +356,7 @@
   h3 { font-size: 1.1rem !important; }
   p, li, span, td, th { font-size: 0.9rem !important; line-height: 1.5 !important; }
 
-  input, select, button {
+  input:not([type="checkbox"]):not([type="radio"]), select, button {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;

@@ -29,7 +29,7 @@
   --accent-red: #fc8181;
   --accent-orange: #f6ad55;
 
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-primary: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
   --gradient-risk-low: linear-gradient(135deg, #68d391 0%, #4fd1c5 100%);
   --gradient-risk-medium: linear-gradient(135deg, #fbd38d 0%, #f6ad55 100%);
   --gradient-risk-high: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
