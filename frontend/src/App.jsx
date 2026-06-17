@@ -15,77 +15,112 @@ import PeerComparison from './components/PeerComparison'
 const API_BASE = 'https://finansal-risk-ai.onrender.com/api'
 
 // ==========================================================================
-// 🚀 PREMIUM FINTECH YÜKLEME EKRANI (CHECKLIST KONSEPTİ)
+// 🚀 ULTRA-PROFESYONEL FINTECH YÜKLEME EKRANI (STEPPER & PROGRESS BAR)
 // ==========================================================================
-const PremiumLoadingScreen = () => {
+const ProfessionalLoadingScreen = () => {
   const [step, setStep] = useState(0);
   const steps = [
-    "Veriler güvenli ağ üzerinden alınıyor",
+    "Güvenli bağlantı tescilleniyor",
     "Geçmiş kredi veritabanı taranıyor",
-    "Random Forest karar ağaçları çalıştırılıyor",
-    "SHAP (Açıklanabilirlik) matrisi hesaplanıyor",
-    "Risk skoru ve eylem planı hazırlanıyor"
+    "Random Forest modeli çalıştırılıyor",
+    "XAI motoru kararları analiz ediyor",
+    "Nihai risk raporu derleniyor"
   ];
 
   useEffect(() => {
-    // Toplam 2.5 saniye sürecek şekilde adımları 450ms arayla ilerletiyoruz
+    // 2.5 saniye sürecek şekilde adımları 500ms arayla ilerletiyoruz
     const timer = setInterval(() => {
       setStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-    }, 450); 
+    }, 500); 
     return () => clearInterval(timer);
   }, []);
 
+  // İlerleme çubuğunun yüzdesini hesaplama
+  const progressPercentage = ((step + 1) / steps.length) * 100;
+
   return (
     <section className="results-section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '16px', background: 'var(--bg-glass)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
-      <div style={{ padding: '40px', width: '100%', maxWidth: '450px' }}>
+      <div style={{ padding: '40px', width: '100%', maxWidth: '480px' }}>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px', justifyContent: 'center' }}>
-          <div className="modern-spinner" style={{ margin: 0, width: '35px', height: '35px', borderWidth: '3px' }}></div>
+        {/* Üst Başlık Kısmı */}
+        <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+          <div className="modern-spinner" style={{ margin: '0 auto 15px', width: '40px', height: '40px', borderWidth: '3px' }}></div>
           <h3 style={{ color: 'var(--text-primary)', fontSize: '1.4rem', margin: 0, fontWeight: '700' }}>
-            Yapay Zeka Analiz Ediyor
+            Sistem Analizi
           </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '6px' }}>
+            Yapay zeka finansal verilerinizi işliyor
+          </p>
+        </div>
+
+        {/* 🚀 Üst İlerleme Çubuğu (Progress Bar) */}
+        <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginBottom: '30px', overflow: 'hidden' }}>
+          <div style={{ 
+            height: '100%', 
+            width: `${progressPercentage}%`, 
+            background: 'linear-gradient(90deg, #38bdf8, #10b981)', 
+            transition: 'width 0.5s ease-in-out' 
+          }}></div>
         </div>
         
-        {/* Adım Adım İlerleyen Kontrol Listesi */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(15, 23, 42, 0.3)', padding: '25px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+        {/* 🚀 Timeline (Stepper) Kontrol Listesi */}
+        <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '10px' }}>
+          
+          {/* Adımları birbirine bağlayan dikey arka plan çizgisi */}
+          <div style={{ position: 'absolute', left: '25px', top: '20px', bottom: '20px', width: '2px', background: 'rgba(255,255,255,0.05)', zIndex: 0 }}></div>
+
           {steps.map((text, index) => {
             const isActive = index === step;
             const isCompleted = index < step;
+            const isPending = index > step;
             
             return (
               <div key={index} style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '14px', 
-                opacity: isCompleted || isActive ? 1 : 0.3,
-                transform: isActive ? 'scale(1.02)' : 'scale(1)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                gap: '20px', 
+                padding: '12px 0',
+                position: 'relative',
+                zIndex: 1,
+                opacity: isPending ? 0.4 : 1,
+                transform: isActive ? 'translateX(5px)' : 'translateX(0)',
+                transition: 'all 0.4s ease'
               }}>
-                {/* İkon / Durum Belirteci */}
+                
+                {/* Dairesel İkon Kutusu (SVG) */}
                 <div style={{ 
-                  width: '24px', 
-                  height: '24px', 
+                  width: '32px', 
+                  height: '32px', 
                   borderRadius: '50%', 
-                  background: isCompleted ? '#10b981' : (isActive ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.1)'),
-                  border: isActive ? '2px solid #38bdf8' : 'none',
+                  background: isCompleted ? '#10b981' : (isActive ? 'rgba(15, 23, 42, 0.9)' : 'rgba(15, 23, 42, 0.5)'),
+                  border: isActive ? '2px solid #38bdf8' : (isCompleted ? '2px solid #10b981' : '2px solid rgba(255,255,255,0.1)'),
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  fontSize: '12px',
-                  color: '#fff',
-                  boxShadow: isActive ? '0 0 10px rgba(56, 189, 248, 0.5)' : 'none'
+                  flexShrink: 0,
+                  boxShadow: isActive ? '0 0 15px rgba(56, 189, 248, 0.3)' : 'none',
+                  transition: 'all 0.3s ease'
                 }}>
-                  {isCompleted ? '✓' : (isActive ? '⚡' : '')}
+                  {/* Tamamlandıysa Beyaz Tik SVG'si */}
+                  {isCompleted && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  )}
+                  {/* Aktifse Parlayan Mavi Nokta */}
+                  {isActive && (
+                    <div style={{ width: '8px', height: '8px', background: '#38bdf8', borderRadius: '50%', boxShadow: '0 0 8px #38bdf8' }}></div>
+                  )}
                 </div>
                 
                 {/* Metin */}
                 <span style={{ 
-                  color: isActive ? '#fff' : (isCompleted ? 'var(--text-secondary)' : 'var(--text-muted)'), 
+                  color: isActive ? '#ffffff' : (isCompleted ? 'var(--text-secondary)' : 'var(--text-muted)'), 
                   fontSize: '0.95rem',
-                  fontWeight: isActive ? '600' : '400'
+                  fontWeight: isActive ? '600' : '400',
+                  letterSpacing: '0.3px'
                 }}>
                   {text}
-                  {isActive && <span className="blinking-cursor">...</span>}
                 </span>
               </div>
             );
@@ -97,7 +132,6 @@ const PremiumLoadingScreen = () => {
   );
 };
 
-
 function App() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -105,6 +139,14 @@ function App() {
   const [showResults, setShowResults] = useState(false)
   const [currentFeatures, setCurrentFeatures] = useState(null)
   const [isAdminView, setIsAdminView] = useState(false)
+
+  useEffect(() => {
+    // Kullanıcı siteye girdiği an, arka planda API'ye görünmez bir ping atarak uykudan uyandırır.
+    fetch(`${API_BASE}/health`)
+      .then(res => res.json())
+      .then(data => console.log("🤖 Sunucu başarıyla uyandırıldı:", data))
+      .catch(() => console.log("⏳ Sunucu uyanıyor..."));
+  }, []);
 
   const handlePredict = async (features, isQuickFill = false) => {
     setLoading(true) 
@@ -353,8 +395,9 @@ function App() {
                 )}
               </section>
 
+              {/* === SAĞ PANEL: DİNAMİK YÜKLEME / SONUÇ / BOŞ DURUM MANTIĞI === */}
               {loading ? (
-                <PremiumLoadingScreen />
+                <ProfessionalLoadingScreen />
               ) : result && showResults ? (
                 <section className="results-section" id="results-section">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>

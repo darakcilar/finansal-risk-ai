@@ -14,34 +14,47 @@ function RiskResult({ riskProbability, riskLevel, riskLabel, localExplanation })
       gaugeRef.current.style.strokeDasharray = `${circumference}`
       gaugeRef.current.style.strokeDashoffset = `${circumference}`
       
-      requestAnimationFrame(() => {
+      // Tarayıcının diğer ağır grafikleri (SHAP vs.) çizmesi için ona 100ms nefes aldırıyoruz
+      setTimeout(() => {
         requestAnimationFrame(() => {
-          gaugeRef.current.style.transition = 'stroke-dashoffset 2.0s cubic-bezier(0.4, 0, 0.2, 1)'
-          gaugeRef.current.style.strokeDashoffset = `${offset}`
+          if (gaugeRef.current) {
+            gaugeRef.current.style.transition = 'stroke-dashoffset 2.0s cubic-bezier(0.25, 1, 0.5, 1)'
+            gaugeRef.current.style.strokeDashoffset = `${offset}`
+          }
         })
-      })
+      }, 100)
     }
 
-    // 2. Yüzdelik Rakamın Sayma Animasyonu (Paketsiz, Saf React)
+    // 2. Yüzdelik Rakamın YÜKSEK PERFORMANSLI Sayma Animasyonu
     if (percentRef.current) {
       const target = riskProbability * 100
-      let current = 0
       const duration = 2000 // 2 saniye
-      const stepTime = 16 // 60 FPS
-      const step = target / (duration / stepTime)
-      
-      const timer = setInterval(() => {
-        current += step
-        if (current >= target) {
-          current = target
-          clearInterval(timer)
-        }
-        if (percentRef.current) {
-          percentRef.current.textContent = `${current.toFixed(1)}%`
-        }
-      }, stepTime)
+      let startTime = null
 
-      return () => clearInterval(timer)
+      // Animasyonun hızla başlayıp sonlara doğru yavaşlayarak durmasını sağlayan matematiksel formül (Ease-out)
+      const easeOutQuart = (x) => 1 - Math.pow(1 - x, 4)
+
+      const animateNumber = (currentTime) => {
+        if (!startTime) startTime = currentTime
+        const elapsed = currentTime - startTime
+        const progress = Math.min(elapsed / duration, 1)
+
+        const easedProgress = easeOutQuart(progress)
+        const currentVal = target * easedProgress
+
+        if (percentRef.current) {
+          percentRef.current.textContent = `${currentVal.toFixed(1)}%`
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(animateNumber) // Ekran yenileme hızına (60fps/120fps) senkronize ol
+        }
+      }
+
+      // Sayacın da diğer çizimler bittikten sonra pürüzsüzce başlaması için 100ms bekletiyoruz
+      setTimeout(() => {
+        requestAnimationFrame(animateNumber)
+      }, 100)
     }
   }, [riskProbability])
 
@@ -67,7 +80,7 @@ function RiskResult({ riskProbability, riskLevel, riskLabel, localExplanation })
         </span>
       </div>
 
-      <div className="gauge-container">
+      <div className="gauge-container" key={riskProbability}>
         <svg className="gauge-svg" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
           <circle
