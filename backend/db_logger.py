@@ -31,7 +31,7 @@ def init_db():
         ''')
         
         # Varsayılan Admini Ekle (Eğer tabloda yoksa otomatik ekler)
-        c.execute("INSERT OR IGNORE INTO admins (username, password) VALUES (?, ?)", ('admin', '12345'))
+        c.execute("INSERT OR IGNORE INTO admins (username, password) VALUES (?, ?)", ('Furkan', 'Thorinfrkn4!'))
         
         conn.commit()
         conn.close()
