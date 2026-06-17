@@ -40,12 +40,14 @@ const ProfessionalLoadingScreen = () => {
 
   return (
     <section className="results-section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '16px', background: 'var(--bg-glass)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
-      <div style={{ padding: '40px', width: '100%', maxWidth: '480px' }}>
+      {/* 🚀 MOBİL UYUM SINIFI EKLENDİ: responsive-box */}
+      <div className="responsive-box" style={{ padding: '40px', width: '100%', maxWidth: '480px' }}>
         
         {/* Üst Başlık Kısmı */}
         <div style={{ textAlign: 'center', marginBottom: '25px' }}>
           <div className="modern-spinner" style={{ margin: '0 auto 15px', width: '40px', height: '40px', borderWidth: '3px' }}></div>
-          <h3 style={{ color: 'var(--text-primary)', fontSize: '1.4rem', margin: 0, fontWeight: '700' }}>
+          {/* 🚀 MOBİL UYUM SINIFI EKLENDİ: responsive-title */}
+          <h3 className="responsive-title" style={{ color: 'var(--text-primary)', fontSize: '1.4rem', margin: 0, fontWeight: '700' }}>
             Sistem Analizi
           </h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '6px' }}>
@@ -53,7 +55,7 @@ const ProfessionalLoadingScreen = () => {
           </p>
         </div>
 
-        {/* 🚀 Üst İlerleme Çubuğu (Progress Bar) */}
+        {/* Üst İlerleme Çubuğu (Progress Bar) */}
         <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginBottom: '30px', overflow: 'hidden' }}>
           <div style={{ 
             height: '100%', 
@@ -63,11 +65,11 @@ const ProfessionalLoadingScreen = () => {
           }}></div>
         </div>
         
-        {/* 🚀 Timeline (Stepper) Kontrol Listesi */}
+        {/* Timeline (Stepper) Kontrol Listesi */}
         <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: '10px' }}>
           
-          {/* Adımları birbirine bağlayan dikey arka plan çizgisi */}
-          <div style={{ position: 'absolute', left: '25px', top: '20px', bottom: '20px', width: '2px', background: 'rgba(255,255,255,0.05)', zIndex: 0 }}></div>
+          {/* 🚀 MOBİL UYUM SINIFI EKLENDİ: stepper-line */}
+          <div className="stepper-line" style={{ position: 'absolute', left: '25px', top: '20px', bottom: '20px', width: '2px', background: 'rgba(255,255,255,0.05)', zIndex: 0 }}></div>
 
           {steps.map((text, index) => {
             const isActive = index === step;
@@ -75,7 +77,8 @@ const ProfessionalLoadingScreen = () => {
             const isPending = index > step;
             
             return (
-              <div key={index} style={{ 
+              // 🚀 MOBİL UYUM SINIFI EKLENDİ: stepper-item
+              <div key={index} className="stepper-item" style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '20px', 
@@ -87,8 +90,8 @@ const ProfessionalLoadingScreen = () => {
                 transition: 'all 0.4s ease'
               }}>
                 
-                {/* Dairesel İkon Kutusu (SVG) */}
-                <div style={{ 
+                {/* 🚀 MOBİL UYUM SINIFI EKLENDİ: stepper-icon */}
+                <div className="stepper-icon" style={{ 
                   width: '32px', 
                   height: '32px', 
                   borderRadius: '50%', 
@@ -101,20 +104,18 @@ const ProfessionalLoadingScreen = () => {
                   boxShadow: isActive ? '0 0 15px rgba(56, 189, 248, 0.3)' : 'none',
                   transition: 'all 0.3s ease'
                 }}>
-                  {/* Tamamlandıysa Beyaz Tik SVG'si */}
                   {isCompleted && (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                   )}
-                  {/* Aktifse Parlayan Mavi Nokta */}
                   {isActive && (
                     <div style={{ width: '8px', height: '8px', background: '#38bdf8', borderRadius: '50%', boxShadow: '0 0 8px #38bdf8' }}></div>
                   )}
                 </div>
                 
-                {/* Metin */}
-                <span style={{ 
+                {/* 🚀 MOBİL UYUM SINIFI EKLENDİ: stepper-text */}
+                <span className="stepper-text" style={{ 
                   color: isActive ? '#ffffff' : (isCompleted ? 'var(--text-secondary)' : 'var(--text-muted)'), 
                   fontSize: '0.95rem',
                   fontWeight: isActive ? '600' : '400',
@@ -395,7 +396,6 @@ function App() {
                 )}
               </section>
 
-              {/* === SAĞ PANEL: DİNAMİK YÜKLEME / SONUÇ / BOŞ DURUM MANTIĞI === */}
               {loading ? (
                 <ProfessionalLoadingScreen />
               ) : result && showResults ? (
@@ -419,19 +419,23 @@ function App() {
                 </section>
               ) : (
                 <section className="results-section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', border: '1px dashed rgba(148, 163, 184, 0.2)', borderRadius: '16px', background: 'rgba(15, 23, 42, 0.2)' }}>
-                  <div style={{ textAlign: 'center', padding: '40px' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '15px', animation: 'float 6s ease-in-out infinite' }}>
+                  {/* 🚀 MOBİL UYUM SINIFI EKLENDİ: responsive-box */}
+                  <div className="responsive-box" style={{ textAlign: 'center', padding: '40px' }}>
+                    {/* 🚀 MOBİL UYUM SINIFI EKLENDİ: robot-icon */}
+                    <div className="robot-icon" style={{ fontSize: '4rem', marginBottom: '15px', animation: 'float 6s ease-in-out infinite' }}>
                       🤖
                     </div>
-                    <h3 style={{ color: 'var(--text-primary)', fontSize: '1.4rem', marginBottom: '10px' }}>Yapay Zeka Analize Hazır</h3>
+                    {/* 🚀 MOBİL UYUM SINIFI EKLENDİ: responsive-title */}
+                    <h3 className="responsive-title" style={{ color: 'var(--text-primary)', fontSize: '1.4rem', marginBottom: '10px' }}>Yapay Zeka Analize Hazır</h3>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '350px', margin: '0 auto', lineHeight: '1.6' }}>
                       Müşterinin finansal verilerini sol taraftaki forma girerek <b>"Risk Analizi Yap"</b> butonuna tıklayın.
                     </p>
                     
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '25px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                      <span style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(56, 189, 248, 0.2)' }}>🌳 Random Forest</span>
-                      <span style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(16, 185, 129, 0.2)' }}>🧠 SHAP XAI</span>
-                      <span style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(139, 92, 246, 0.2)' }}>📄 PDF Raporu</span>
+                    {/* 🚀 MOBİL UYUM SINIFLARI EKLENDİ: badge-container, badge-item */}
+                    <div className="badge-container" style={{ display: 'flex', gap: '10px', marginTop: '25px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      <span className="badge-item" style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(56, 189, 248, 0.2)' }}>🌳 Random Forest</span>
+                      <span className="badge-item" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(16, 185, 129, 0.2)' }}>🧠 SHAP XAI</span>
+                      <span className="badge-item" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', border: '1px solid rgba(139, 92, 246, 0.2)' }}>📄 PDF Raporu</span>
                     </div>
                   </div>
                 </section>
