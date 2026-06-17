@@ -270,7 +270,6 @@ def get_logs():
         return jsonify({"logs": logs})
     except Exception as e:
         return jsonify({"error": f"Loglar okunamadı: {str(e)}"}), 500
-
 # 🚀 YENİ: Veritabanındaki tüm kayıtları kalıcı olarak silme uç noktası
 @app.route('/api/logs', methods=['DELETE', 'OPTIONS'])
 def clear_logs():
@@ -278,14 +277,21 @@ def clear_logs():
         return jsonify({}), 200
         
     try:
-        conn = get_db_connection()
-        # SQL komutu ile tüm satırları uçuruyoruz
-        conn.execute('DELETE FROM logs')
-        # İşlemi veritabanına kalıcı olarak kaydediyoruz (Burası kritik!)
+        # 1. Doğru veritabanı bağlantı yöntemi
+        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        
+        # 2. Doğru tablo adı (predictions) ile silme işlemi
+        c.execute('DELETE FROM predictions')
+        
+        # İşlemi veritabanına kalıcı olarak kaydediyoruz
         conn.commit()
         conn.close()
+        
         return jsonify({"message": "Tüm kayıtlar başarıyla silindi."}), 200
     except Exception as e:
+        traceback.print_exc() # Terminalde hatayı detaylı görmek için
         return jsonify({"error": str(e)}), 500
     
 if __name__ == "__main__":
