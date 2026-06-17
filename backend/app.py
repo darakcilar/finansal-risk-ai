@@ -270,6 +270,7 @@ def get_logs():
         return jsonify({"logs": logs})
     except Exception as e:
         return jsonify({"error": f"Loglar okunamadı: {str(e)}"}), 500
+
 # 🚀 YENİ: Veritabanındaki tüm kayıtları kalıcı olarak silme uç noktası
 @app.route('/api/logs', methods=['DELETE', 'OPTIONS'])
 def clear_logs():
