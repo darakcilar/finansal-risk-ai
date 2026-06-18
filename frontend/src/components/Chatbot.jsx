@@ -58,12 +58,44 @@ export default function Chatbot({ user, apiBase }) {
         .chat-fab-bubble {
           animation: bounceAndGlow 3s infinite ease-in-out;
         }
+        
+        .chat-modal-window {
+          position: fixed;
+          bottom: 2rem;
+          right: 2rem;
+          width: 350px;
+          height: 500px;
+          max-height: 85vh;
+          background-color: rgba(15, 23, 42, 0.95);
+          backdrop-filter: blur(10px);
+          border: 1px solid var(--border-glass);
+          border-radius: 1rem;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          display: flex;
+          flex-direction: column;
+          z-index: 9999;
+          overflow: hidden;
+        }
+
+        @media (max-width: 480px) {
+          .chat-modal-window {
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 70vh;
+            border-radius: 1rem 1rem 0 0;
+          }
+          .chat-fab-bubble {
+            bottom: 1rem !important;
+            right: 1rem !important;
+          }
+        }
       `}</style>
       
       {/* Floating Action Button */}
       {!isOpen && (
         <button 
-          className="chat-fab-bubble"
+          className="chat-fab-bubble no-mobile-full"
           onClick={() => setIsOpen(true)}
           style={{
             position: 'fixed',
@@ -89,22 +121,7 @@ export default function Chatbot({ user, apiBase }) {
 
       {/* Chat Window */}
       {isOpen && (
-        <div style={{
-          position: 'fixed',
-          bottom: '2rem',
-          right: '2rem',
-          width: '350px',
-          height: '500px',
-          backgroundColor: 'rgba(15, 23, 42, 0.95)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid var(--border-glass)',
-          borderRadius: '1rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          flexDirection: 'column',
-          zIndex: 9999,
-          overflow: 'hidden'
-        }}>
+        <div className="chat-modal-window">
           {/* Header */}
           <div style={{
             display: 'flex',
@@ -119,8 +136,9 @@ export default function Chatbot({ user, apiBase }) {
               <span style={{ fontWeight: '600', color: '#fff' }}>Finansal Asistan</span>
             </div>
             <button 
+              className="no-mobile-full"
               onClick={() => setIsOpen(false)}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem' }}
             >
               <X size={20} />
             </button>
@@ -192,19 +210,22 @@ export default function Chatbot({ user, apiBase }) {
             />
             <button 
               type="submit"
+              className="no-mobile-full"
               disabled={isLoading || !input.trim()}
               style={{
                 backgroundColor: 'var(--sky-blue)',
                 border: 'none',
                 borderRadius: '50%',
                 width: '40px',
+                minWidth: '40px',
                 height: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#fff',
                 cursor: 'pointer',
-                opacity: (isLoading || !input.trim()) ? 0.5 : 1
+                opacity: (isLoading || !input.trim()) ? 0.5 : 1,
+                padding: 0
               }}
             >
               <Send size={18} />

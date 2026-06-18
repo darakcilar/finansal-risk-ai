@@ -530,7 +530,7 @@
   h3 { font-size: 1.2rem !important; }
   p, li { font-size: 0.95rem !important; line-height: 1.5 !important; }
 
-  input:not([type="checkbox"]):not([type="radio"]), select, button {
+  input:not([type="checkbox"]):not([type="radio"]), select, button:not(.no-mobile-full) {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
