@@ -89,6 +89,29 @@ function RiskForm({ onSubmit, loading }) {
     // Gelir 0'dan büyükse borcu gelire böl, yoksa doğrudan borcu kullan.
     const debtRatio = income > 0 ? (debt / income) : debt;
 
+    // --- KISITLAMALAR VE DOĞRULAMALAR ---
+    if (ccBalance > ccLimit) {
+      alert("Hata: Güncel kart borcunuz, toplam kart limitinizden yüksek olamaz.");
+      return;
+    }
+    if (parseFloat(formData.age) < 18 || parseFloat(formData.age) > 100) {
+      alert("Hata: Lütfen 18 ile 100 arasında geçerli bir yaş girin.");
+      return;
+    }
+    if (income === 0 && debt > 100000) {
+      alert("Hata: Aylık net gelir 0 iken girilen borç miktarı gerçekçi değil. Lütfen kontrol edin.");
+      return;
+    }
+    if (income > 0 && debt > income * 20) {
+      alert("Hata: Aylık borç ödemeniz, aylık gelirinizin 20 katından fazla olamaz. Bu sistem tarafından geçersiz sayılır.");
+      return;
+    }
+    if (income > 10000000 || debt > 10000000) {
+      alert("Hata: Lütfen 10,000,000 TL'den daha düşük, gerçekçi değerler girin.");
+      return;
+    }
+    // ------------------------------------
+
     // 3. Python ML Modelinin tam olarak beklediği formatta objeyi oluşturuyoruz
     const mlFeatures = {
       "RevolvingUtilizationOfUnsecuredLines": ccUtilizationRatio,

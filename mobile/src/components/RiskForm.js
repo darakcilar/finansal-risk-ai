@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, GRADIENTS, RADIUS, SHADOWS } from '../theme/colors';
 
@@ -51,6 +51,29 @@ export default function RiskForm({ onSubmit, loading }) {
 
     const ccUtilizationRatio = ccLimit > 0 ? (ccBalance / ccLimit) : (ccBalance > 0 ? 1 : 0);
     const debtRatio = income > 0 ? (debt / income) : debt;
+
+    // --- KISITLAMALAR VE DOĞRULAMALAR ---
+    if (ccBalance > ccLimit) {
+      Alert.alert("Hata", "Güncel kart borcunuz, toplam kart limitinizden yüksek olamaz.");
+      return;
+    }
+    if (parseFloat(formData.age) < 18 || parseFloat(formData.age) > 100) {
+      Alert.alert("Hata", "Lütfen 18 ile 100 arasında geçerli bir yaş girin.");
+      return;
+    }
+    if (income === 0 && debt > 100000) {
+      Alert.alert("Hata", "Aylık net gelir 0 iken girilen borç miktarı gerçekçi değil. Lütfen kontrol edin.");
+      return;
+    }
+    if (income > 0 && debt > income * 20) {
+      Alert.alert("Hata", "Aylık borç ödemeniz, aylık gelirinizin 20 katından fazla olamaz.");
+      return;
+    }
+    if (income > 10000000 || debt > 10000000) {
+      Alert.alert("Hata", "Lütfen 10,000,000 TL'den daha düşük, gerçekçi değerler girin.");
+      return;
+    }
+    // ------------------------------------
 
     const mlFeatures = {
       "RevolvingUtilizationOfUnsecuredLines": ccUtilizationRatio,
