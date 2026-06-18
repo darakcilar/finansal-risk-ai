@@ -511,7 +511,7 @@
     border-radius: 8px;
   }
   
-  .admin-header, .dashboard-header {
+  .admin-header {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 15px !important;
@@ -525,10 +525,10 @@
   }
 
   /* Yazı ve Buton Optimizasyonu */
-  h1 { font-size: 1.5rem !important; }
-  h2 { font-size: 1.3rem !important; }
-  h3 { font-size: 1.1rem !important; }
-  p, li, span, td, th { font-size: 0.9rem !important; line-height: 1.5 !important; }
+  h1 { font-size: 1.6rem !important; }
+  h2 { font-size: 1.4rem !important; }
+  h3 { font-size: 1.2rem !important; }
+  p, li { font-size: 0.95rem !important; line-height: 1.5 !important; }
 
   input:not([type="checkbox"]):not([type="radio"]), select, button {
     width: 100% !important;
@@ -577,6 +577,10 @@
     font-size: 16px !important; /* iOS oto-zoom'u engeller */
     padding: 16px 14px !important;
     height: 52px !important; /* Native uygulama yüksekliği */
+  }
+
+  .form-input {
+    padding-left: 48px !important; /* İkon ile metnin üst üste gelmesini engeller */
   }
 
   button {
