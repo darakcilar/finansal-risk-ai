@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogOut, Download, Clock, ArrowRight, Activity, Settings as SettingsIcon, Menu } from 'lucide-react';
@@ -20,6 +20,14 @@ export default function Dashboard() {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowWelcome(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -332,6 +340,41 @@ export default function Dashboard() {
       
       {/* AI Chatbot Assistant */}
       <Chatbot user={user} apiBase={API_BASE} />
+
+      {/* Welcome Splash Screen */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: 'easeInOut' }}
+            style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: '#050a1a', // var(--bg-primary)
+              zIndex: 99999,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5, type: 'spring' }}
+              style={{ textAlign: 'center' }}
+            >
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', marginBottom: '10px' }}>
+                Hoşgeldin, <span style={{ color: '#38bdf8' }}>{user.name.split(' ')[0]}</span> 👋
+              </h1>
+              <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
+                Finansal verilerin hazırlanıyor...
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
