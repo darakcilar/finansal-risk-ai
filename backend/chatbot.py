@@ -59,7 +59,7 @@ def generate_chatbot_response(message, user_analysis):
         return {"text": "Rica ederim! Finansal sağlığınızı korumak için buradayım. Başka bir sorunuz olursa sormaktan çekinmeyin."}
 
     # Yeni Deep Linking ve Uygulama Navigasyon Özellikleri
-    elif any(word in msg_lower for word in ["analiz yap", "yeni analiz", "test et", "analize", "hesapla"]):
+    elif any(word in msg_lower for word in ["analiz", "test", "hesapla", "değerlendir"]):
         return {
             "text": "Tabii, finansal durumunuzu değerlendirmek için yeni bir analiz başlatabilirsiniz. Lütfen aşağıdaki butona tıklayarak formu doldurun.",
             "action": {"label": "Yeni Analiz Yap", "route": "Form"}
