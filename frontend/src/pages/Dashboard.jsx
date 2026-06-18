@@ -160,14 +160,14 @@ export default function Dashboard() {
         <div className="dashboard-grid">
           
           {/* Slim Market Data Banner */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.8rem 1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.8rem 1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#10b981', fontWeight: 600 }}>
               <Activity size={18} /> Canlı Piyasa
             </div>
             {marketLoading ? (
               <span style={{color: 'var(--text-muted)', fontSize: '0.9rem'}}>Yükleniyor...</span>
             ) : marketData ? (
-              <div style={{ display: 'flex', gap: '2rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'baseline' }}>
                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>🇺🇸 USD/TRY</span>
                    <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>{marketData.USD}</span>
