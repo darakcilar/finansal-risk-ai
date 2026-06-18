@@ -157,6 +157,9 @@ function App() {
     setError(null)
     setShowResults(false)
     setCurrentFeatures(features)
+    
+    // Yükleme ekranı çıktığı an mobilde ekranı en üste/merkeze kaydır ki animasyon görülsün
+    window.scrollTo({ top: document.body.scrollHeight > 1000 ? 100 : 0, behavior: 'smooth' })
 
     try {
       const payload = { 
@@ -164,11 +167,15 @@ function App() {
         user_id: user ? user.id : null 
       };
 
-      const response = await fetch(`${API_BASE}/predict`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      // API isteği ile 3 saniyelik zorunlu bekleme (Animasyon) süresini aynı anda başlatıyoruz
+      const [response] = await Promise.all([
+        fetch(`${API_BASE}/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }),
+        new Promise(resolve => setTimeout(resolve, 3000)) // Animasyonun izlenmesi için en az 3 sn bekle
+      ]);
 
       if (!response.ok) {
         const data = await response.json()
@@ -179,12 +186,11 @@ function App() {
       setResult(data)
       addHistoryItem({ ...data, features: features })
       
-      // Animasyonun tamamlanmasını (Tüm tiklerin atılmasını) beklemek için süreyi artırdık
-      setTimeout(() => setShowResults(true), 2500)
+      setShowResults(true)
     } catch (err) {
       setError(err.message)
     } finally {
-      setTimeout(() => setLoading(false), 2500)
+      setLoading(false)
     }
   }
 
