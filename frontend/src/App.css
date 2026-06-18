@@ -560,7 +560,7 @@
   /* Footer hizalaması */
   .app-footer {
     flex-direction: column !important;
-    padding: 20px 10px !important;
+    padding: 20px 10px calc(20px + env(safe-area-inset-bottom)) !important;
     text-align: center;
     gap: 20px;
   }
@@ -570,5 +570,28 @@
     top: auto !important;
     transform: none !important;
     margin: 0 auto;
+  }
+
+  /* FORMLAR İÇİN BÜYÜK DOKUNMA ALANLARI VE YAKINLAŞTIRMA (ZOOM) ENGELLEYİCİ */
+  input[type="text"], input[type="number"], input[type="email"], input[type="password"], select {
+    font-size: 16px !important; /* iOS oto-zoom'u engeller */
+    padding: 16px 14px !important;
+    height: 52px !important; /* Native uygulama yüksekliği */
+  }
+
+  button {
+    min-height: 50px !important; /* Rahat basılabilir butonlar */
+  }
+
+  /* IOS ÇENTİK (NOTCH) VE GÜVENLİ BÖLGE AYARLARI */
+  .app {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .dashboard-header {
+    padding-top: calc(15px + env(safe-area-inset-top)) !important;
   }
 }
