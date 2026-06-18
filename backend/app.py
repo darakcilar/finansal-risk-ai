@@ -200,6 +200,48 @@ def get_all_users():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/api/users/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    conn = get_db_connection()
+    if not conn: return jsonify({"success": False, "error": "Veritabanına bağlanılamadı"}), 500
+    try:
+        c = get_db_cursor(conn)
+        c.execute("DELETE FROM users WHERE id = %s RETURNING id", (user_id,))
+        deleted = c.fetchone()
+        conn.commit()
+        conn.close()
+        if deleted:
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "Kullanıcı bulunamadı"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/users/<int:user_id>", methods=["PUT"])
+def update_user(user_id):
+    conn = get_db_connection()
+    if not conn: return jsonify({"success": False, "error": "Veritabanına bağlanılamadı"}), 500
+    try:
+        data = request.get_json()
+        name = data.get("name")
+        email = data.get("email")
+        
+        c = get_db_cursor(conn)
+        c.execute("UPDATE users SET name = %s, email = %s WHERE id = %s RETURNING id", (name, email, user_id))
+        updated = c.fetchone()
+        conn.commit()
+        conn.close()
+        
+        if updated:
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "Kullanıcı bulunamadı"}), 404
+    except psycopg2.IntegrityError:
+        conn.close()
+        return jsonify({"success": False, "error": "Bu e-posta adresi başka bir kullanıcı tarafından kullanılıyor."}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/api/auth/change-password", methods=["POST"])
 def auth_change_password():
     try:

@@ -5,6 +5,7 @@ import TrainingStatsView from './TrainingStatsView'; // Eğitim İstatistikleri 
 function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
   const [logs, setLogs] = useState([]);
   const [users, setUsers] = useState([]);
+  const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(alreadyLoggedIn);
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -69,6 +70,41 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
         }
       })
       .catch(err => console.error("Kullanıcıları çekerken hata:", err));
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Bu kullanıcıyı tamamen silmek istediğinize emin misiniz?")) return;
+    try {
+      const res = await fetch(`${apiBase}/users/${userId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setUsers(users.filter(u => u.id !== userId));
+      } else {
+        alert("Kullanıcı silinemedi.");
+      }
+    } catch (err) {
+      alert("Sunucuya ulaşılamadı.");
+    }
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    try {
+      const res = await fetch(`${apiBase}/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editingUser.name, email: editingUser.email })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUsers(users.map(u => u.id === editingUser.id ? { ...u, name: editingUser.name, email: editingUser.email } : u));
+        setEditingUser(null);
+      } else {
+        alert(data.error || "Kullanıcı güncellenemedi.");
+      }
+    } catch (err) {
+      alert("Sunucuya ulaşılamadı.");
+    }
   };
 
   const handleClearLogs = async () => {
@@ -256,12 +292,13 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
                 <th style={{ padding: '12px' }}>Ad Soyad</th>
                 <th style={{ padding: '12px' }}>E-posta</th>
                 <th style={{ padding: '12px' }}>Kayıt Tarihi</th>
+                <th style={{ padding: '12px', textAlign: 'right' }}>İşlemler</th>
               </tr>
             </thead>
             <tbody>
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan="4" style={{ padding: '20px 0', textAlign: 'center', color: '#64748b' }}>Henüz kayıtlı kullanıcı yok.</td>
+                  <td colSpan="5" style={{ padding: '20px 0', textAlign: 'center', color: '#64748b' }}>Henüz kayıtlı kullanıcı yok.</td>
                 </tr>
               ) : (
                 users.map(u => (
@@ -270,6 +307,16 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
                     <td style={{ padding: '12px', fontWeight: 'bold' }}>{u.name}</td>
                     <td style={{ padding: '12px', color: '#cbd5e1' }}>{u.email}</td>
                     <td style={{ padding: '12px', color: '#64748b' }}>{new Date(u.created_at).toLocaleString('tr-TR')}</td>
+                    <td style={{ padding: '12px', textAlign: 'right' }}>
+                      <button 
+                        onClick={() => setEditingUser({ ...u })}
+                        style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', marginRight: '10px', fontSize: '13px' }}
+                      >✏️ Düzenle</button>
+                      <button 
+                        onClick={() => handleDeleteUser(u.id)}
+                        style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}
+                      >🗑️ Sil</button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -289,6 +336,38 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
         </p>
         <TrainingStatsView apiBase={apiBase} />
       </div>
+
+      {/* KULLANICI DÜZENLEME MODAL */}
+      {editingUser && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(5px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <form onSubmit={handleUpdateUser} style={{ background: '#0f172a', padding: '30px', borderRadius: '15px', border: '1px solid #334155', width: '90%', maxWidth: '400px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <h3 style={{ color: '#38bdf8', marginTop: 0, marginBottom: '20px', fontSize: '18px' }}>Kullanıcı Bilgilerini Düzenle</h3>
+            
+            <label style={{ display: 'block', color: '#94a3b8', fontSize: '13px', marginBottom: '5px' }}>Ad Soyad</label>
+            <input 
+              type="text" required value={editingUser.name}
+              onChange={e => setEditingUser({...editingUser, name: e.target.value})}
+              style={{ width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px', background: '#1e293b', color: 'white', border: '1px solid #334155', outline: 'none' }}
+            />
+
+            <label style={{ display: 'block', color: '#94a3b8', fontSize: '13px', marginBottom: '5px' }}>E-posta Adresi</label>
+            <input 
+              type="email" required value={editingUser.email}
+              onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+              style={{ width: '100%', padding: '12px', marginBottom: '25px', borderRadius: '8px', background: '#1e293b', color: 'white', border: '1px solid #334155', outline: 'none' }}
+            />
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="submit" style={{ flex: 1, padding: '12px', background: '#38bdf8', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                Kaydet
+              </button>
+              <button type="button" onClick={() => setEditingUser(null)} style={{ flex: 1, padding: '12px', background: 'transparent', color: '#94a3b8', border: '1px solid #334155', borderRadius: '8px', cursor: 'pointer' }}>
+                İptal
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
     </div>
   );
