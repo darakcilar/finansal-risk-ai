@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send } from 'lucide-react';
+import { Bot, X, Send } from 'lucide-react';
 
 export default function Chatbot({ user, apiBase }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -49,32 +49,41 @@ export default function Chatbot({ user, apiBase }) {
 
   return (
     <>
+      <style>{`
+        @keyframes bounceAndGlow {
+          0% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+          50% { transform: translateY(-15px); box-shadow: 0 0 0 20px rgba(56, 189, 248, 0); }
+          100% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+        .chat-fab-bubble {
+          animation: bounceAndGlow 3s infinite ease-in-out;
+        }
+      `}</style>
+      
       {/* Floating Action Button */}
       {!isOpen && (
         <button 
+          className="chat-fab-bubble"
           onClick={() => setIsOpen(true)}
           style={{
             position: 'fixed',
-            bottom: '2rem',
-            right: '2rem',
-            width: '60px',
-            height: '60px',
-            borderRadius: '30px',
+            bottom: '2.5rem',
+            right: '2.5rem',
+            width: '65px',
+            height: '65px',
+            borderRadius: '50%',
             backgroundColor: 'var(--sky-blue)',
+            backgroundImage: 'linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%)',
             color: '#fff',
             border: 'none',
-            boxShadow: '0 10px 25px rgba(56, 189, 248, 0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
             zIndex: 9999,
-            transition: 'transform 0.3s ease'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
-          <MessageSquare size={28} />
+          <Bot size={32} />
         </button>
       )}
 
@@ -137,7 +146,8 @@ export default function Chatbot({ user, apiBase }) {
                 borderBottomLeftRadius: msg.sender === 'bot' ? '0.2rem' : '1rem',
                 maxWidth: '85%',
                 fontSize: '0.9rem',
-                lineHeight: '1.4'
+                lineHeight: '1.4',
+                textAlign: 'left'
               }}>
                 {msg.text}
               </div>

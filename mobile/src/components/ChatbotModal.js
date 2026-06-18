@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     fontSize: 14,
     lineHeight: 20,
+    textAlign: 'left',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -206,6 +207,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     color: COLORS.textPrimary,
     fontSize: 14,
+    textAlign: 'left',
   },
   sendBtn: {
     width: 40,

@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import React, { useContext, useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { COLORS, RADIUS, SHADOWS } from '../theme/colors';
 import { AuthContext } from '../context/AuthContext';
@@ -12,6 +12,16 @@ export default function DashboardScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const bounceAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, { toValue: -15, duration: 1500, useNativeDriver: true }),
+        Animated.timing(bounceAnim, { toValue: 0, duration: 1500, useNativeDriver: true })
+      ])
+    ).start();
+  }, [bounceAnim]);
 
   const handleNewAnalysis = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -72,16 +82,18 @@ export default function DashboardScreen({ navigation }) {
 
       {/* Floating Action Button for Chatbot */}
       {!isChatOpen && (
-        <TouchableOpacity 
-          style={styles.chatFab} 
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setIsChatOpen(true);
-          }}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.chatFabIcon}>💬</Text>
-        </TouchableOpacity>
+        <Animated.View style={[styles.chatFabContainer, { transform: [{ translateY: bounceAnim }] }]}>
+          <TouchableOpacity 
+            style={styles.chatFab} 
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setIsChatOpen(true);
+            }}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.chatFabIcon}>🤖</Text>
+          </TouchableOpacity>
+        </Animated.View>
       )}
 
       {/* Chatbot Modal */}
@@ -112,10 +124,13 @@ const styles = StyleSheet.create({
   bigActionIcon: { fontSize: 35 },
   bigActionTitle: { color: COLORS.textPrimary, fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
   bigActionDesc: { color: COLORS.textSecondary, fontSize: 14, textAlign: 'center', paddingHorizontal: 10 },
-  chatFab: {
+  chatFabContainer: {
     position: 'absolute',
     bottom: 30,
     right: 25,
+    zIndex: 99,
+  },
+  chatFab: {
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -123,7 +138,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.lg,
-    zIndex: 99,
   },
   chatFabIcon: {
     fontSize: 28,
