@@ -180,7 +180,7 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
             "feature": 'Kredi Kartı Kullanım Oranı', "icon": '💳', "severity": 'critical',
             "currentValue": f"%{int(cc_util * 100)}", "idealRange": '%0 – %30', "status": 'Çok Yüksek',
             "explanation": f"Kredi kartlarınızın %{int(cc_util * 100)}'i dolu. Kredi limitinizin %30'undan fazlasını kullanmak, finansal baskı altında olduğunuz izlenimini verir.",
-            "advice": [f'Hedef: Güvenilir seviyeye inmek için kredi kartı borcunuzun en az %{target_reduction}\\'lik kısmını acilen kapatmalısınız.', 'En yüksek faizli karttan başlayarak borçları ödeyin (avalanche yöntemi).', 'Yeni alışverişlerde banka kartı kullanmayı tercih edin.']
+            "advice": [f"Hedef: Güvenilir seviyeye inmek için kredi kartı borcunuzun en az %{target_reduction}'lik kısmını acilen kapatmalısınız.", 'En yüksek faizli karttan başlayarak borçları ödeyin (avalanche yöntemi).', 'Yeni alışverişlerde banka kartı kullanmayı tercih edin.']
         })
     elif cc_util > 0.3:
         target_reduction = int((cc_util - 0.30) * 100)
@@ -188,7 +188,7 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
             "feature": 'Kredi Kartı Kullanım Oranı', "icon": '💳', "severity": 'warning',
             "currentValue": f"%{int(cc_util * 100)}", "idealRange": '%0 – %30', "status": 'Orta',
             "explanation": f"Kredi kartı kullanım oranınız %{int(cc_util * 100)}. Kabul edilebilir seviyede ancak %30'un altına düşürmek risk puanınızı olumlu etkileyecektir.",
-            "advice": [f'Hedef: Risk puanınızı iyileştirmek için kart borcunuzun %{target_reduction}\\'lik kısmını kapatmalısınız.']
+            "advice": [f"Hedef: Risk puanınızı iyileştirmek için kart borcunuzun %{target_reduction}'lik kısmını kapatmalısınız."]
         })
     else:
         positive_factors.append({
