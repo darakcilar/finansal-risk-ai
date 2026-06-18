@@ -3,20 +3,25 @@ import re
 
 def generate_chatbot_response(message, user_analysis):
     """
-    Kural tabanlı (Rule-based) Chatbot mantığı.
+    Gelişmiş Kural Tabanlı (Rule-based) Finansal Risk Yapay Zekası.
     message: Kullanıcının yazdığı mesaj
-    user_analysis: Veritabanından çekilen kullanıcının son analiz verisi (dict)
-                   Format: {'risk_probability': 0.85, 'risk_level': 'high', 'features_json': '{...}'}
+    user_analysis: Kullanıcının son analiz verisi
     """
     msg_lower = message.lower()
     
+    # Uygulama hakkında genel sorular (Kullanıcı analiz yapmamış olsa bile cevaplanır)
+    if any(word in msg_lower for word in ["uygulama", "nedir", "ne işe yarar", "nasıl çalışır", "sen kimsin", "amacınız"]):
+        return {
+            "text": "Ben Finansal Risk Yapay Zeka (AI) asistanınızım. Amacım, geliriniz, borçlarınız, yaşınız ve kredi geçmişiniz gibi finansal verilerinizi makine öğrenmesi modelleriyle analiz ederek, kredi çekme veya yeni borçlanma durumlarındaki riskinizi hesaplamaktır. Sizin için kişiselleştirilmiş finansal tavsiyeler üretebilirim."
+        }
+
     if not user_analysis:
         return {
-            "text": "Merhaba! Size özel finansal tavsiyeler verebilmem için öncelikle güncel finansal bilgilerinizi girmeniz gerekiyor.",
+            "text": "Merhaba! Size özel, veriye dayalı finansal tavsiyeler verebilmem için öncelikle güncel finansal bilgilerinizi sisteme girmeniz gerekiyor. Aşağıdaki butondan ilk analizinizi hemen başlatabilirsiniz.",
             "action": {"label": "Yeni Analiz Yap", "route": "Form"}
         }
 
-    # Parse features
+    # Kullanıcı verilerini ayrıştırma
     try:
         features = json.loads(user_analysis.get('features_json', '{}'))
     except:
@@ -25,63 +30,89 @@ def generate_chatbot_response(message, user_analysis):
     risk_prob = user_analysis.get('risk_probability', 0)
     risk_level = user_analysis.get('risk_level', 'unknown')
     
-    # Kredi/Borç/Limit Keywords
-    if any(word in msg_lower for word in ["kredi çek", "kredi al", "kredi başvurusu", "kredi limiti", "yeni kredi"]):
+    income = float(features.get("MonthlyIncome", 0))
+    debt = float(features.get("TotalDebt", 0))
+    delinquencies = int(features.get("NumberOfTimes90DaysLate", 0) or 0)
+    
+    # Borç/Gelir Oranı (DTI) hesaplama
+    dti = (debt / income) * 100 if income > 0 else 0
+
+    # 1. TAVSİYE / ÖNERİ İSTEKLERİ
+    if any(word in msg_lower for word in ["tavsiye", "öneri", "ne yapmalıyım", "nasıl düzeltirim", "fikrin nedir"]):
         if risk_prob > 0.6:
-            return {"text": f"Şu anki risk oranınız yüksek (%{(risk_prob*100):.1f}). Sistem verilerinize göre yeni bir kredi çekmeniz oldukça riskli görünüyor. Lütfen öncelikle mevcut borçlarınızı (varsa gecikmelerinizi) azaltmaya odaklanın."}
+            advice = f"Mevcut verilerinize göre risk skorunuz yüksek (%{(risk_prob*100):.1f}). "
+            if delinquencies > 0:
+                advice += f"Sistemimizde {delinquencies} adet 90 günü aşmış gecikmeniz görünüyor. İlk önceliğiniz bu gecikmiş borçları kapatmak olmalıdır. "
+            if dti > 40:
+                advice += f"Aylık borç/gelir oranınız %{dti:.1f} seviyesinde; bu sınırın (%40) üzerinde. Acil durum fonu dışında yeni kredi çekmekten kesinlikle kaçınmalı ve harcamalarınızı kısmalısınız."
+            return {"text": advice}
         elif risk_prob > 0.3:
-            return {"text": f"Risk oranınız orta seviyede (%{(risk_prob*100):.1f}). Kredi çekebilirsiniz ancak aylık taksitlerin, aylık gelirinizin %30'unu geçmemesine çok dikkat edin."}
+            return {"text": f"Risk skorunuz orta seviyede (%{(risk_prob*100):.1f}). Borçluluk oranınız fena değil ancak iyileştirmeye açık. Kredi kartı asgari tutarlarını değil, dönem borçlarının tamamını ödemeye çalışın. Gerekmedikçe yeni kredi başvurusu (sorgusu) yapmayın."}
         else:
-            return {"text": f"Risk oranınız oldukça düşük (%{(risk_prob*100):.1f})! Finansal sağlığınız mükemmel görünüyor. Yeni bir kredi başvurusu yapmanızda herhangi bir sakınca bulunmuyor, muhtemelen kolayca onaylanacaktır."}
+            return {"text": f"Mükemmel bir finansal tablo! Risk oranınız oldukça düşük (%{(risk_prob*100):.1f}). Düzenli ödeme alışkanlıklarınızı koruyun. Fazla nakdiniz varsa, bunu yatırım araçlarında değerlendirerek finansal özgürlüğünüzü hızlandırabilirsiniz."}
 
-    elif any(word in msg_lower for word in ["kredi kartı", "kart", "kredi kartım"]):
-        return {"text": "Kredi kartı borçluluk oranınızı düşük tutmak kredi notunuz için kritiktir. Limitinizin %30'undan fazlasını kullanmamaya çalışın. Asgari ödeme yerine her ay borcun tamamını kapatmak en iyi stratejidir."}
+    # 2. KREDİ ÇEKME / BAŞVURU İSTEKLERİ
+    elif any(word in msg_lower for word in ["kredi çek", "kredi al", "kredi başvurusu", "yeni kredi", "kredi çıkar mı", "kredi verirler mi"]):
+        if risk_prob > 0.6 or dti > 50:
+            return {"text": f"Algoritmamıza göre kredi başvurunuzun REDDEDİLME ihtimali çok yüksek (Risk: %{(risk_prob*100):.1f}). Bankalar, borç/gelir oranınızın yüksekliği nedeniyle yeni bir krediyi riskli bulacaktır. Şu an kredi çekmek yerine mevcut borçlarınızı konsolide etmeyi (tek bir çatı altında birleştirmeyi) düşünmelisiniz."}
+        else:
+            return {"text": f"Kredi çekmek için uygun bir profiliniz var (Risk: %{(risk_prob*100):.1f}). Ancak çekeceğiniz kredinin aylık taksiti ile mevcut borçlarınızın toplamı, aylık gelirinizin {income} TL'nin yarısını asla geçmemeli."}
 
-    elif any(word in msg_lower for word in ["risk", "not", "skor", "puan"]):
+    # 3. KREDİ KARTI / LİMİT İSTEKLERİ
+    elif any(word in msg_lower for word in ["kredi kartı", "kart", "limit", "kredi kartım"]):
+        return {"text": "Kredi kartı limitlerinizin tamamını kullanmak, kredi notunuzu hızla düşürür. İdeal olan, kart limitinizin %30'undan fazlasını doldurmamaktır. Eğer sürekli limite dayanıyorsanız, limit artırımı istemek yerine harcamaları kısmak veya nakit akışınızı düzenlemek daha güvenli bir yoldur."}
+
+    # 4. RİSK / NOT / SKOR SORULARI
+    elif any(word in msg_lower for word in ["risk", "not", "skor", "puan", "durumum"]):
         if risk_level == "low":
-            return {"text": f"Son analizimize göre risk olasılığınız sadece %{(risk_prob*100):.1f}. Kredi notunuz ve finansal güvenilirliğiniz harika durumda. Böyle devam edin!"}
+            return {"text": f"Son analizimize göre risk olasılığınız sadece %{(risk_prob*100):.1f}. Harika! Finansal kuruluşların gözünde çok 'güvenilir' bir sıradasınız."}
         elif risk_level == "medium":
-            return {"text": f"Son analizimize göre risk olasılığınız %{(risk_prob*100):.1f} (Orta Seviye). Finansal durumunuz fena değil ancak ufak tefek gecikmelere veya yüksek kredi kartı kullanımlarına dikkat etmelisiniz."}
+            return {"text": f"Son analizimize göre risk olasılığınız %{(risk_prob*100):.1f} (Orta Seviye). Tehlikeli sularda değilsiniz ancak çok güvende de sayılmazsınız. Ani borçlanmalara dikkat edin."}
         else:
-            return {"text": f"Son analizimize göre risk olasılığınız maalesef yüksek (%{(risk_prob*100):.1f}). Finansal kuruluşlar size kredi verirken temkinli yaklaşacaktır. Borç yapılandırması düşünebilirsiniz."}
+            return {"text": f"Son analizimize göre risk olasılığınız yüksek (%{(risk_prob*100):.1f}). Finansal kuruluşlar size borç verirken muhtemelen yüksek faiz uygulayacak veya reddedecektir."}
 
-    elif any(word in msg_lower for word in ["gecikme", "ödemedim", "geciken"]):
-        return {"text": "Gecikmeler (özellikle 30 gün ve üzeri) kredi notunu en hızlı düşüren faktördür. Algoritmamız gecikmeleri 'kırmızı bayrak' olarak değerlendirir. Lütfen tüm ödemelerinizi otomatik talimata alın."}
+    # 5. GECİKME / BORÇ SORULARI
+    elif any(word in msg_lower for word in ["gecikme", "ödemedim", "geciken", "borç", "icra"]):
+        return {"text": "Bankalar için 30 günlük bir gecikme uyarıdır, ancak 90 günlük gecikme (idari takip) kredi sicilinizde yıllarca silinmeyen bir iz bırakır. Asla kredilerinizi yasal takip sürecine düşürmeyin; gerekirse bankayla görüşüp yapılandırma talep edin."}
 
+    # 6. GELİR / MAAŞ SORULARI
     elif any(word in msg_lower for word in ["gelir", "maaş", "zam"]):
-        income = features.get("MonthlyIncome", "Bilinmiyor")
-        return {"text": f"Sistemimizde kayıtlı son aylık geliriniz: {income} ₺. Gelirinizin artması tek başına riskinizi sıfırlamaz, önemli olan 'Borç/Gelir' (Debt Ratio) oranınızı düşük tutmaktır."}
+        return {"text": f"Sistemimizde kayıtlı aylık geliriniz: {income} ₺. Bankalar kredi verirken gelirinize değil, 'Gelirinizden arta kalan paraya' bakar. Yani maaşınız ne kadar yüksek olursa olsun, harcamalarınız ve borcunuz fazlaysa riskiniz yüksektir."}
 
+    # 7. SELAMLAŞMA
     elif any(word in msg_lower for word in ["merhaba", "selam", "hey", "nasılsın"]):
-        return {"text": f"Merhaba! Ben sizin kişisel Finansal Risk Yapay Zeka Asistanınızım. Güncel risk olasılığınız %{(risk_prob*100):.1f}. Size nasıl yardımcı olabilirim?"}
+        return {"text": f"Merhaba! Ben sizin Finansal Risk Yapay Zeka Asistanınızım. Güncel verilerinize göre risk oranınız %{(risk_prob*100):.1f}. 'Bana tavsiye ver', 'Kredi çekmeli miyim?' gibi uygulama içi asistanlık soruları sorabilirsiniz."}
         
-    elif any(word in msg_lower for word in ["teşekkür", "sağol", "eyvallah"]):
-        return {"text": "Rica ederim! Finansal sağlığınızı korumak için buradayım. Başka bir sorunuz olursa sormaktan çekinmeyin."}
+    elif any(word in msg_lower for word in ["teşekkür", "sağol", "eyvallah", "harika"]):
+        return {"text": "Rica ederim! Finansal sağlığınızı bir adım ileri taşımak için her zaman buradayım."}
 
-    # Yeni Deep Linking ve Uygulama Navigasyon Özellikleri
+    # 8. DEEP LINKING (UYGULAMA İÇİ YÖNLENDİRME)
     elif any(word in msg_lower for word in ["analiz", "test", "hesapla", "değerlendir"]):
         return {
-            "text": "Tabii, finansal durumunuzu değerlendirmek için yeni bir analiz başlatabilirsiniz. Lütfen aşağıdaki butona tıklayarak formu doldurun.",
+            "text": "Güncel durumunuzu hesaplamak ve risk algoritmamızı çalıştırmak için yeni bir analiz yapabilirsiniz. Aşağıdaki butonu kullanarak forma gidebilirsiniz:",
             "action": {"label": "Yeni Analiz Yap", "route": "Form"}
         }
         
     elif any(word in msg_lower for word in ["geçmiş", "eski", "önceki", "history", "tarihçe"]):
         return {
-            "text": "Geçmişte yaptığınız tüm analiz sonuçlarınıza detaylıca göz atabilirsiniz. Kısayolu aşağıya bırakıyorum:",
+            "text": "Zaman içindeki finansal trendinizi görmek için geçmiş analiz sonuçlarınıza göz atabilirsiniz:",
             "action": {"label": "Geçmiş Analizlerim", "route": "History"}
         }
         
     elif any(word in msg_lower for word in ["çıkış", "logout", "kapat", "hesabımdan çık"]):
         return {
-            "text": "Güvenliğiniz için uygulamadan çıkış yapabilirsiniz:",
-            "action": {"label": "Çıkış Yap", "route": "Logout"} # Frontend'de Logout özel işlenecek
+            "text": "Oturumunuzu güvenle sonlandırabilirsiniz:",
+            "action": {"label": "Çıkış Yap", "route": "Logout"}
         }
         
     elif any(word in msg_lower for word in ["ayarlar", "profil", "şifre"]):
         return {
-            "text": "Profil ve güvenlik ayarlarınıza buradan ulaşabilirsiniz:",
+            "text": "Uygulama ayarları, tema seçenekleri ve profil bilgilerinizi buradan yönetebilirsiniz:",
             "action": {"label": "Ayarlar", "route": "Settings"}
         }
 
+    # FALLBACK (Anlaşılamayan Sorular)
     else:
-        return {"text": "Bu sorunuzu tam olarak anlayamadım. Bana 'Kredi çekmeli miyim?', 'Risk durumum nasıl?', 'Yeni analiz yap' veya 'Geçmiş analizlerim' gibi komutlar verebilirsiniz."}
+        return {
+            "text": "Özür dilerim, bu sorunuzu finansal algoritmamla eşleştiremedim. Bir Finansal Risk Yapay Zekası olarak bana:\n- 'Bana tavsiye ver'\n- 'Kredi çekmeli miyim?'\n- 'Risk durumum nasıl?'\n- 'Uygulama ne işe yarar?'\ngibi sorular sorabilirsiniz."
+        }
