@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, X, Send } from 'lucide-react';
+import { Bot, X, Send, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Chatbot({ user, apiBase }) {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { sender: 'bot', text: 'Merhaba! Ben Finansal Asistanınızım. Size nasıl yardımcı olabilirim? (Örn: "Kredi çekmeli miyim?", "Kredi kartı limitimi artırabilir miyim?")' }
@@ -36,7 +38,7 @@ export default function Chatbot({ user, apiBase }) {
       const data = await response.json();
       
       if (response.ok && data.reply) {
-        setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
+        setMessages(prev => [...prev, { sender: 'bot', text: data.reply, action: data.action }]);
       } else {
         setMessages(prev => [...prev, { sender: 'bot', text: 'Üzgünüm, asistan şu an yanıt veremiyor.' }]);
       }
@@ -168,6 +170,36 @@ export default function Chatbot({ user, apiBase }) {
                 textAlign: 'left'
               }}>
                 {msg.text}
+                {msg.action && (
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      if (msg.action.route === 'Logout') {
+                        // Assuming the user navigates to settings for logout or a specific route handles it
+                        navigate('/login');
+                      } else {
+                        navigate('/' + msg.action.route.toLowerCase());
+                      }
+                    }}
+                    style={{
+                      marginTop: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                      color: 'var(--sky-blue)',
+                      border: '1px solid rgba(56, 189, 248, 0.4)',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      width: 'fit-content'
+                    }}
+                  >
+                    {msg.action.label} <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
             ))}
             {isLoading && (

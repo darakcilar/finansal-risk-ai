@@ -615,8 +615,11 @@ def chat():
         except Exception as e:
             print("DB Fetch Error:", e)
 
-    response_text = generate_chatbot_response(message, user_analysis)
-    return jsonify({"reply": response_text}), 200
+    response_data = generate_chatbot_response(message, user_analysis)
+    if isinstance(response_data, dict):
+        return jsonify({"reply": response_data.get("text", ""), "action": response_data.get("action")}), 200
+    else:
+        return jsonify({"reply": response_data}), 200
 
 if __name__ == "__main__":
     flask_port = int(os.environ.get("PYTHON_PORT", 5002))

@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Modal, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, RADIUS, SHADOWS } from '../theme/colors';
 
 export default function ChatbotModal({ isVisible, onClose, userId, apiBase }) {
+  const navigation = useNavigation();
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Merhaba! Ben Finansal Asistanınızım. Size nasıl yardımcı olabilirim? (Örn: "Kredi çekmeli miyim?", "Limitimi artırmalı mıyım?")' }
+    { sender: 'bot', text: 'Merhaba! Ben Finansal Asistanınızım. Size nasıl yardımcı olabilirim? (Örn: "Kredi çekmeli miyim?", "Kredi kartı limitimi artırabilir miyim?")' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +39,7 @@ export default function ChatbotModal({ isVisible, onClose, userId, apiBase }) {
       const data = await response.json();
       
       if (response.ok && data.reply) {
-        setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
+        setMessages(prev => [...prev, { sender: 'bot', text: data.reply, action: data.action }]);
       } else {
         setMessages(prev => [...prev, { sender: 'bot', text: 'Üzgünüm, asistan şu an yanıt veremiyor.' }]);
       }
@@ -88,6 +90,21 @@ export default function ChatbotModal({ isVisible, onClose, userId, apiBase }) {
                 <Text style={[styles.messageText, msg.sender === 'user' && { color: '#fff' }]}>
                   {msg.text}
                 </Text>
+                {msg.action && (
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => {
+                      onClose();
+                      if (msg.action.route === 'Logout') {
+                        navigation.navigate('Settings');
+                      } else {
+                        navigation.navigate(msg.action.route);
+                      }
+                    }}
+                  >
+                    <Text style={styles.actionButtonText}>{msg.action.label}  ➤</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
             
