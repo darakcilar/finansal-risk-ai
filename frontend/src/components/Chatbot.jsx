@@ -229,39 +229,37 @@ export default function Chatbot({ user, apiBase }) {
           </div>
 
           {/* Suggestions */}
-          {messages.length === 1 && (
-            <div style={{
-              display: 'flex',
-              gap: '0.5rem',
-              padding: '0.5rem 1rem',
-              overflowX: 'auto',
-              borderTop: '1px solid rgba(255,255,255,0.05)',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}>
-              {SUGGESTIONS.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSend(null, s)}
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#e2e8f0',
-                    padding: '0.4rem 0.8rem',
-                    borderRadius: '1rem',
-                    fontSize: '0.8rem',
-                    whiteSpace: 'nowrap',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.1)'; e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.3)'; e.currentTarget.style.color = '#38bdf8'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#e2e8f0'; }}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
+          <div style={{
+            display: 'flex',
+            gap: '0.5rem',
+            padding: '0.5rem 1rem',
+            overflowX: 'auto',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}>
+            {SUGGESTIONS.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => handleSend(null, s)}
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#e2e8f0',
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '1rem',
+                  fontSize: '0.8rem',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(56, 189, 248, 0.1)'; e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.3)'; e.currentTarget.style.color = '#38bdf8'; }}
+                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#e2e8f0'; }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
 
           {/* Input Area */}
           <form onSubmit={handleSend} style={{

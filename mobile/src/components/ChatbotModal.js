@@ -123,32 +123,30 @@ export default function ChatbotModal({ isVisible, onClose, userId, apiBase }) {
             )}
           </ScrollView>
 
-          {messages.length === 1 && (
-            <View style={{ borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.05)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 15, paddingVertical: 10, gap: 10 }}
-              >
-                {SUGGESTIONS.map((s, i) => (
-                  <TouchableOpacity 
-                    key={i}
-                    onPress={() => handleSend(s)}
-                    style={{
-                      backgroundColor: 'rgba(255,255,255,0.05)',
-                      borderColor: 'rgba(255,255,255,0.1)',
-                      borderWidth: 1,
-                      paddingVertical: 8,
-                      paddingHorizontal: 14,
-                      borderRadius: 20,
-                    }}
-                  >
-                    <Text style={{ color: COLORS.textMuted, fontSize: 13, fontWeight: '500' }}>{s}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
+          <View style={{ borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.05)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 15, paddingVertical: 10, gap: 10 }}
+            >
+              {SUGGESTIONS.map((s, i) => (
+                <TouchableOpacity 
+                  key={i}
+                  onPress={() => handleSend(s)}
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    paddingVertical: 8,
+                    paddingHorizontal: 14,
+                    borderRadius: 20,
+                  }}
+                >
+                  <Text style={{ color: COLORS.textMuted, fontSize: 13, fontWeight: '500' }}>{s}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
 
           <View style={styles.inputContainer}>
             <TextInput
