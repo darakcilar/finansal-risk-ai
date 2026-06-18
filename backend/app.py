@@ -336,7 +336,20 @@ def predict():
         decision_path = get_decision_path(model, input_array)
         importances = _get_importance()
         
-        local_explanation = generate_local_explanation(model, input_array, importances, risk_probability)
+        user_name = None
+        if user_id:
+            conn = get_db_connection()
+            if conn:
+                try:
+                    c = get_db_cursor(conn)
+                    c.execute("SELECT name FROM users WHERE id = %s", (user_id,))
+                    u_row = c.fetchone()
+                    if u_row:
+                        user_name = u_row['name']
+                finally:
+                    conn.close()
+                    
+        local_explanation = generate_local_explanation(model, input_array, importances, risk_probability, user_name)
         shap_values_result = get_shap_values(model, input_array)
 
         if not skip_log: 
@@ -382,7 +395,21 @@ def explain():
 
         decision_path = get_decision_path(model, input_array)
         importances = _get_importance()
-        local_explanation = generate_local_explanation(model, input_array, importances, risk_probability)
+        user_id = data.get("user_id", None)
+        user_name = None
+        if user_id:
+            conn = get_db_connection()
+            if conn:
+                try:
+                    c = get_db_cursor(conn)
+                    c.execute("SELECT name FROM users WHERE id = %s", (user_id,))
+                    u_row = c.fetchone()
+                    if u_row:
+                        user_name = u_row['name']
+                finally:
+                    conn.close()
+                    
+        local_explanation = generate_local_explanation(model, input_array, importances, risk_probability, user_name)
         shap_values_result = get_shap_values(model, input_array)
 
         return jsonify({

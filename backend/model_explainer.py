@@ -102,7 +102,7 @@ def get_decision_path(model, input_array):
 
     return steps
 
-def generate_local_explanation(model, input_array, feature_importances, prediction_proba):
+def generate_local_explanation(model, input_array, feature_importances, prediction_proba, user_name=None):
     explanations = []
     risk_prob = float(prediction_proba)
     risk_level = "high" if risk_prob >= 0.7 else "medium" if risk_prob >= 0.4 else "low"
@@ -116,15 +116,15 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
     # =========================================================================
     # DİNAMİK XAI YÖNETİCİ ÖZETİ (KİŞİSELLEŞTİRİLMİŞ METİN ÜRETİMİ)
     # =========================================================================
-    xai_advice = ""
+    xai_advice = f"Sayın {user_name}, " if user_name else ""
     
     # 1. Giriş Cümlesi (Gerçek Yüzdelik Oran ile)
     if risk_prob >= 0.7:
-        xai_advice = f"Yapay zeka modelimiz, girdiğiniz veriler doğrultusunda finansal profilinizi %{int(risk_prob*100)} ihtimalle 'Yüksek Riskli' olarak sınıflandırmıştır. "
+        xai_advice += f"Yapay zeka modelimiz, girdiğiniz veriler doğrultusunda finansal profilinizi %{int(risk_prob*100)} ihtimalle 'Yüksek Riskli' olarak sınıflandırmıştır. "
     elif risk_prob >= 0.4:
-        xai_advice = f"Yapay zeka modelimiz, finansal profilinizi %{int(risk_prob*100)} ihtimalle 'Orta Riskli' olarak değerlendirmiştir. "
+        xai_advice += f"Yapay zeka modelimiz, finansal profilinizi %{int(risk_prob*100)} ihtimalle 'Orta Riskli' olarak değerlendirmiştir. "
     else:
-        xai_advice = f"Sistemimiz finansal durumunuzu sağlıklı bularak %{int(risk_prob*100)} risk skoru ile 'Düşük Risk' kategorisine yerleştirmiştir. "
+        xai_advice += f"Sistemimiz finansal durumunuzu sağlıklı bularak %{int(risk_prob*100)} risk skoru ile 'Düşük Risk' kategorisine yerleştirmiştir. "
 
     # 2. Kullanıcının Kendi Verilerini Cümlenin İçine Yedirme
     cc_util_val = float(input_array[0][0])
@@ -175,18 +175,20 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
     # 1. Kredi Kartı Kullanım Oranı
     cc_util = float(input_array[0][0])
     if cc_util > 0.7:
+        target_reduction = int((cc_util - 0.30) * 100)
         risk_factors.append({
             "feature": 'Kredi Kartı Kullanım Oranı', "icon": '💳', "severity": 'critical',
             "currentValue": f"%{int(cc_util * 100)}", "idealRange": '%0 – %30', "status": 'Çok Yüksek',
-            "explanation": f"Kredi kartlarınızın %{int(cc_util * 100)}'ini kullanıyorsunuz. Kredi limitinizin %30'undan fazlasını kullanmak, finansal baskı altında olduğunuz izlenimini verir.",
-            "advice": ['Kredi kartı bakiyenizi limitin %30\'unun altına düşürmeye çalışın.', 'En yüksek faizli karttan başlayarak borçları ödeyin (avalanche yöntemi).', 'Yeni alışverişlerde banka kartı kullanmayı tercih edin.']
+            "explanation": f"Kredi kartlarınızın %{int(cc_util * 100)}'i dolu. Kredi limitinizin %30'undan fazlasını kullanmak, finansal baskı altında olduğunuz izlenimini verir.",
+            "advice": [f'Hedef: Güvenilir seviyeye inmek için kredi kartı borcunuzun en az %{target_reduction}\\'lik kısmını acilen kapatmalısınız.', 'En yüksek faizli karttan başlayarak borçları ödeyin (avalanche yöntemi).', 'Yeni alışverişlerde banka kartı kullanmayı tercih edin.']
         })
     elif cc_util > 0.3:
+        target_reduction = int((cc_util - 0.30) * 100)
         risk_factors.append({
             "feature": 'Kredi Kartı Kullanım Oranı', "icon": '💳', "severity": 'warning',
             "currentValue": f"%{int(cc_util * 100)}", "idealRange": '%0 – %30', "status": 'Orta',
             "explanation": f"Kredi kartı kullanım oranınız %{int(cc_util * 100)}. Kabul edilebilir seviyede ancak %30'un altına düşürmek risk puanınızı olumlu etkileyecektir.",
-            "advice": ['Aylık bakiyenizi limitin %30\'unun altında tutmaya özen gösterin.']
+            "advice": [f'Hedef: Risk puanınızı iyileştirmek için kart borcunuzun %{target_reduction}\\'lik kısmını kapatmalısınız.']
         })
     else:
         positive_factors.append({
@@ -244,19 +246,26 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
 
     # 4. Borç/Gelir Oranı
     debt_ratio = float(input_array[0][3])
+    monthly_income = float(input_array[0][4])
+    monthly_debt = debt_ratio * monthly_income
+
     if debt_ratio > 0.5:
+        target_debt = 0.35 * monthly_income
+        reduction_needed = monthly_debt - target_debt
         risk_factors.append({
             "feature": 'Borç / Gelir Oranı', "icon": '📊', "severity": 'critical' if debt_ratio > 0.8 else 'warning',
             "currentValue": f"%{int(debt_ratio * 100)}", "idealRange": '%0 – %35', "status": 'Çok Yüksek' if debt_ratio > 0.8 else 'Yüksek',
-            "explanation": f"Aylık borç ödemeleriniz gelirinizin %{int(debt_ratio * 100)}'ini oluşturuyor. Finans kuruluşları genellikle %35'in altındaki oranları sağlıklı kabul eder.",
-            "advice": ['En yüksek faizli borçları öncelikli olarak kapatın.', 'Düşük faizli kredi ile yüksek faizli borçları birleştirmeyi değerlendirin.']
+            "explanation": f"Aylık geliriniz {int(monthly_income):,} TL ve aylık borç ödemeleriniz {int(monthly_debt):,} TL (%{int(debt_ratio * 100)} oran).".replace(',', '.'),
+            "advice": [f'Hedef: Güvenli bölge olan %35\\'e inmek için aylık borç yükünüzü tam olarak {int(reduction_needed):,} TL azaltmalısınız.'.replace(',', '.'), 'En yüksek faizli borçları öncelikli olarak kapatın.']
         })
     elif debt_ratio > 0.35:
+        target_debt = 0.35 * monthly_income
+        reduction_needed = monthly_debt - target_debt
         risk_factors.append({
             "feature": 'Borç / Gelir Oranı', "icon": '📊', "severity": 'info',
             "currentValue": f"%{int(debt_ratio * 100)}", "idealRange": '%0 – %35', "status": 'Dikkat',
-            "explanation": f"Borç/gelir oranınız %{int(debt_ratio * 100)}. İdeal aralığın biraz üstünde, ancak yönetilebilir seviyede.",
-            "advice": ['Yeni borçlanma yapmadan önce mevcut borçları azaltın.']
+            "explanation": f"Aylık geliriniz {int(monthly_income):,} TL ve aylık borcunuz {int(monthly_debt):,} TL (%{int(debt_ratio * 100)} oran).".replace(',', '.'),
+            "advice": [f'Hedef: Risk oranını iyileştirmek için borç yükünüzü {int(reduction_needed):,} TL azaltmalısınız.'.replace(',', '.')]
         })
     else:
         positive_factors.append({
