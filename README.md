@@ -8,7 +8,8 @@
 ![Status](https://img.shields.io/badge/Status-Live-brightgreen.svg)
 
 🌐 **Canlı Demo (Web):** [Finansal Risk AI Web Sitesi](https://finansal-risk-ai-furkand.onrender.com/)
-📱 **Android Uygulaması (APK):** [Bültenler (Releases) Sekmesinden İndirin](https://github.com/darakcilar/finansal-risk-ai/releases) 
+
+📱 **Android Uygulaması (APK):** [Releases Sekmesinden İndirin](https://github.com/darakcilar/finansal-risk-ai/releases) 
 
 Finansal Risk AI, kullanıcıların finansal verilerini analiz ederek kredi risklerini değerlendiren ve bu tahminleri **Explainable AI (XAI - Açıklanabilir Yapay Zeka)** teknikleri ile şeffaf bir şekilde gerekçelendiren "Full-Stack" bir analiz platformudur. 
 
