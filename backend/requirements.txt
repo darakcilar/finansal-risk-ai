@@ -9,3 +9,4 @@ python-dotenv
 shap
 numpy==1.26.4
 flask-cors
+psycopg2-binary==2.9.9

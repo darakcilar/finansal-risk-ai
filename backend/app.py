@@ -14,7 +14,6 @@ import os
 import traceback
 import joblib
 import numpy as np
-import sqlite3
 import json
 import urllib.request
 import threading
@@ -39,7 +38,7 @@ from model_explainer import (
     get_shap_values,
 )
 
-from db_logger import init_db, log_prediction
+from db_logger import init_db, log_prediction, get_db_connection, get_db_cursor
 
 init_db()
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "advanced_risk_model.joblib")
@@ -127,17 +126,17 @@ def auth_register():
         hashed_password = generate_password_hash(password)
         now = datetime.now().isoformat()
         
-        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
-        conn = sqlite3.connect(db_path)
-        c = conn.cursor()
+        conn = get_db_connection()
+        if not conn: return jsonify({"success": False, "error": "Veritabanına bağlanılamadı"}), 500
+        c = get_db_cursor(conn)
         
         try:
-            c.execute("INSERT INTO users (name, email, password_hash, created_at) VALUES (?, ?, ?, ?)", (name, email, hashed_password, now))
-            user_id = c.lastrowid
+            c.execute("INSERT INTO users (name, email, password_hash, created_at) VALUES (%s, %s, %s, %s) RETURNING id", (name, email, hashed_password, now))
+            user_id = c.fetchone()['id']
             conn.commit()
             conn.close()
             return jsonify({"success": True, "user": {"id": user_id, "name": name, "email": email, "role": "user"}})
-        except sqlite3.IntegrityError:
+        except psycopg2.IntegrityError:
             conn.close()
             return jsonify({"success": False, "error": "Bu e-posta adresi zaten kullanımda."}), 400
             
@@ -152,24 +151,24 @@ def auth_login():
         password = data.get("password")
         role = data.get("role", "user")
         
-        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
-        conn = sqlite3.connect(db_path)
-        c = conn.cursor()
+        conn = get_db_connection()
+        if not conn: return jsonify({"success": False, "error": "Veritabanına bağlanılamadı"}), 500
+        c = get_db_cursor(conn)
         
         if role == "admin":
-            c.execute("SELECT * FROM admins WHERE username = ? AND password = ?", (email, password))
+            c.execute("SELECT * FROM admins WHERE username = %s AND password = %s", (email, password))
             admin = c.fetchone()
             conn.close()
             if admin:
-                return jsonify({"success": True, "user": {"id": admin[0], "name": "Sistem Yöneticisi", "email": admin[1], "role": "admin"}})
+                return jsonify({"success": True, "user": {"id": admin['id'], "name": "Sistem Yöneticisi", "email": admin['username'], "role": "admin"}})
             else:
                 return jsonify({"success": False, "error": "Hatalı yönetici girişi"}), 401
         else:
-            c.execute("SELECT * FROM users WHERE email = ?", (email,))
+            c.execute("SELECT * FROM users WHERE email = %s", (email,))
             user = c.fetchone()
             conn.close()
-            if user and check_password_hash(user[3], password):
-                return jsonify({"success": True, "user": {"id": user[0], "name": user[1], "email": user[2], "role": "user"}})
+            if user and check_password_hash(user['password_hash'], password):
+                return jsonify({"success": True, "user": {"id": user['id'], "name": user['name'], "email": user['email'], "role": "user"}})
             else:
                 return jsonify({"success": False, "error": "Hatalı e-posta veya şifre"}), 401
     except Exception as e:
@@ -186,16 +185,16 @@ def auth_change_password():
         if not user_id or not old_password or not new_password:
             return jsonify({"success": False, "error": "Eksik bilgi"}), 400
             
-        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
-        conn = sqlite3.connect(db_path)
-        c = conn.cursor()
+        conn = get_db_connection()
+        if not conn: return jsonify({"success": False, "error": "Veritabanına bağlanılamadı"}), 500
+        c = get_db_cursor(conn)
         
-        c.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        c.execute("SELECT * FROM users WHERE id = %s", (user_id,))
         user = c.fetchone()
         
-        if user and check_password_hash(user[3], old_password):
+        if user and check_password_hash(user['password_hash'], old_password):
             new_hash = generate_password_hash(new_password)
-            c.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_id))
+            c.execute("UPDATE users SET password_hash = %s WHERE id = %s", (new_hash, user_id))
             conn.commit()
             conn.close()
             return jsonify({"success": True})
@@ -210,11 +209,10 @@ def get_user_history():
     user_id = request.args.get("user_id")
     if not user_id: return jsonify({"history": []})
     try:
-        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        c.execute("SELECT * FROM predictions WHERE user_id = ? ORDER BY id DESC", (user_id,))
+        conn = get_db_connection()
+        if not conn: return jsonify({"history": []})
+        c = get_db_cursor(conn)
+        c.execute("SELECT * FROM predictions WHERE user_id = %s ORDER BY id DESC", (user_id,))
         rows = c.fetchall()
         conn.close()
         
@@ -356,12 +354,10 @@ def get_training_stats():
 @app.route("/api/logs", methods=["GET"])
 def get_logs():
     try:
-        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
-        if not os.path.exists(db_path): return jsonify({"logs": []})
+        conn = get_db_connection()
+        if not conn: return jsonify({"logs": []})
 
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row 
-        c = conn.cursor()
+        c = get_db_cursor(conn)
         c.execute('SELECT * FROM predictions ORDER BY id DESC LIMIT 50')
         rows = c.fetchall()
         
@@ -384,15 +380,12 @@ def clear_logs():
         return jsonify({}), 200
         
     try:
-        # 1. Doğru veritabanı bağlantı yöntemi
-        db_path = os.path.join(os.path.dirname(__file__), "risk_logs.db")
-        conn = sqlite3.connect(db_path)
-        c = conn.cursor()
+        conn = get_db_connection()
+        if not conn: return jsonify({"error": "Veritabanı bağlantısı yok"}), 500
+        c = get_db_cursor(conn)
         
-        # 2. Doğru tablo adı (predictions) ile silme işlemi
         c.execute('DELETE FROM predictions')
         
-        # İşlemi veritabanına kalıcı olarak kaydediyoruz
         conn.commit()
         conn.close()
         
