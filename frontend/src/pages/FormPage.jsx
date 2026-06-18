@@ -158,8 +158,13 @@ function App() {
     setShowResults(false)
     setCurrentFeatures(features)
     
-    // Yükleme ekranı çıktığı an mobilde ekranı en üste/merkeze kaydır ki animasyon görülsün
-    window.scrollTo({ top: document.body.scrollHeight > 1000 ? 100 : 0, behavior: 'smooth' })
+    // Yükleme animasyonunu ve sonuçları görmek için sayfayı aşağı sonuçlar alanına kaydır
+    setTimeout(() => {
+      const resultsEl = document.getElementById('results-section');
+      if (resultsEl) {
+        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
 
     try {
       const payload = { 
