@@ -20,14 +20,17 @@ export default function Dashboard() {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(() => !sessionStorage.getItem('welcomeShown'));
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (showWelcome) {
+      const timer = setTimeout(() => {
+        setShowWelcome(false);
+        sessionStorage.setItem('welcomeShown', 'true');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
