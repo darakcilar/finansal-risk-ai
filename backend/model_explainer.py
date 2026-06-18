@@ -256,7 +256,7 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
             "feature": 'Borç / Gelir Oranı', "icon": '📊', "severity": 'critical' if debt_ratio > 0.8 else 'warning',
             "currentValue": f"%{int(debt_ratio * 100)}", "idealRange": '%0 – %35', "status": 'Çok Yüksek' if debt_ratio > 0.8 else 'Yüksek',
             "explanation": f"Aylık geliriniz {int(monthly_income):,} TL ve aylık borç ödemeleriniz {int(monthly_debt):,} TL (%{int(debt_ratio * 100)} oran).".replace(',', '.'),
-            "advice": [f'Hedef: Güvenli bölge olan %35\\'e inmek için aylık borç yükünüzü tam olarak {int(reduction_needed):,} TL azaltmalısınız.'.replace(',', '.'), 'En yüksek faizli borçları öncelikli olarak kapatın.']
+            "advice": [f"Hedef: Güvenli bölge olan %35'e inmek için aylık borç yükünüzü tam olarak {int(reduction_needed):,} TL azaltmalısınız.".replace(',', '.'), 'En yüksek faizli borçları öncelikli olarak kapatın.']
         })
     elif debt_ratio > 0.35:
         target_debt = 0.35 * monthly_income
@@ -265,7 +265,7 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
             "feature": 'Borç / Gelir Oranı', "icon": '📊', "severity": 'info',
             "currentValue": f"%{int(debt_ratio * 100)}", "idealRange": '%0 – %35', "status": 'Dikkat',
             "explanation": f"Aylık geliriniz {int(monthly_income):,} TL ve aylık borcunuz {int(monthly_debt):,} TL (%{int(debt_ratio * 100)} oran).".replace(',', '.'),
-            "advice": [f'Hedef: Risk oranını iyileştirmek için borç yükünüzü {int(reduction_needed):,} TL azaltmalısınız.'.replace(',', '.')]
+            "advice": [f"Hedef: Risk oranını iyileştirmek için borç yükünüzü {int(reduction_needed):,} TL azaltmalısınız.".replace(',', '.')]
         })
     else:
         positive_factors.append({
