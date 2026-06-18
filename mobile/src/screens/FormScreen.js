@@ -301,12 +301,18 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.borderGlass,
   },
   backBtn: {
-    padding: 10,
-    marginLeft: -10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: COLORS.borderGlass,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
   },
   backText: {
-    color: COLORS.skyBlue,
-    fontSize: 16,
+    color: COLORS.textPrimary,
+    fontSize: 14,
     fontWeight: '600',
   },
   topHeaderTitle: {

@@ -113,20 +113,24 @@ export default function Dashboard() {
         handleLogout={handleLogout} 
       />
 
-      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {isMobile && (
-             <button onClick={() => setIsDrawerOpen(true)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', padding: 0 }}>
-               <Menu size={28} />
-             </button>
-          )}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0.5rem' }}>
-            <h2 className="dashboard-greeting" style={{ margin: 0 }}>Merhaba,</h2>
-            <h1 className="dashboard-name" style={{ margin: 0, wordBreak: 'break-word' }}>{user.name}</h1>
+      {isMobile ? (
+        <header className="dashboard-header" style={{ width: '100%', marginBottom: '1.5rem', display: 'block' }}>
+          <button onClick={() => setIsDrawerOpen(true)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: 0, marginBottom: '20px' }}>
+            <Menu size={32} />
+          </button>
+          <h2 className="dashboard-greeting" style={{ margin: 0, color: 'var(--sky-blue)', fontSize: '1.15rem' }}>Merhaba,</h2>
+          <h1 className="dashboard-name" style={{ margin: '5px 0 10px 0', fontSize: '2.2rem', fontWeight: 800 }}>{user.name}</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Bugün risk analizi yapmak için harika bir gün!</p>
+        </header>
+      ) : (
+        <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0.5rem' }}>
+              <h2 className="dashboard-greeting" style={{ margin: 0 }}>Merhaba,</h2>
+              <h1 className="dashboard-name" style={{ margin: 0, wordBreak: 'break-word' }}>{user.name}</h1>
+            </div>
           </div>
-        </div>
-        
-        {!isMobile && (
+          
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <Link to="/settings" className="btn-logout" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'var(--border-glass)' }}>
               <SettingsIcon size={16} />
@@ -137,22 +141,28 @@ export default function Dashboard() {
               <span className="hidden sm:inline">Çıkış Yap</span>
             </button>
           </div>
-        )}
-      </header>
+        </header>
+      )}
 
       {user.role === 'admin' ? (
         <AdminDashboard apiBase={API_BASE} alreadyLoggedIn={true} />
       ) : isMobile ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingBottom: '2rem' }}>
           <div className="action-cards" style={{ flexDirection: 'column', marginTop: 'auto', marginBottom: 'auto' }}>
-            <Link to="/form" className="action-card new" style={{ padding: '3rem 2rem' }}>
-              <span style={{ fontSize: '48px', marginBottom: '16px' }}>🚀</span>
-              <span className="action-text" style={{ fontSize: '1.5rem' }}>Yeni Analiz Yap</span>
+            <Link to="/form" className="action-card new" style={{ padding: '2rem', background: 'rgba(15, 23, 55, 0.8)', borderColor: 'var(--border-glass)', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+              <div style={{ width: 70, height: 70, borderRadius: 35, background: 'rgba(56, 189, 248, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 15 }}>
+                <span style={{ fontSize: '35px' }}>🚀</span>
+              </div>
+              <span className="action-text" style={{ fontSize: '1.25rem', color: 'white', marginBottom: '8px' }}>Yeni Analiz Yap</span>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textAlign: 'center' }}>Yeni bir finansal risk değerlendirmesi başlatın</span>
             </Link>
 
-            <Link to="/history" className="action-card history" style={{ padding: '3rem 2rem', marginTop: '1.5rem' }}>
-              <span style={{ fontSize: '48px', marginBottom: '16px' }}>📊</span>
-              <span className="action-text" style={{ fontSize: '1.5rem' }}>Geçmiş Analizlerim</span>
+            <Link to="/history" className="action-card history" style={{ padding: '2rem', marginTop: '1.2rem', background: 'rgba(15, 23, 55, 0.8)', borderColor: 'var(--border-glass)', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+              <div style={{ width: 70, height: 70, borderRadius: 35, background: 'rgba(139, 92, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 15 }}>
+                <span style={{ fontSize: '35px' }}>📊</span>
+              </div>
+              <span className="action-text" style={{ fontSize: '1.25rem', color: 'white', marginBottom: '8px' }}>Geçmiş Analizlerim</span>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textAlign: 'center' }}>Önceki analiz sonuçlarınızı inceleyin</span>
             </Link>
           </div>
         </div>
