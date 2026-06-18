@@ -345,7 +345,8 @@ def get_shap_values(model, input_array):
             print("⚙️ SHAP Explainer belleğe yükleniyor (Sadece 1 kez çalışır)...")
             _cached_explainer = shap.TreeExplainer(model)
             
-        shap_values = _cached_explainer.shap_values(input_array)
+        # check_additivity=False ekleyerek olası matematiksel hassasiyet hatalarını (AssertionError) önlüyoruz
+        shap_values = _cached_explainer.shap_values(input_array, check_additivity=False)
         
         if isinstance(shap_values, list):
             vals = shap_values[1][0] 

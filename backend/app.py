@@ -17,6 +17,8 @@ import numpy as np
 import sqlite3
 import json
 import urllib.request
+import threading
+import time
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -271,7 +273,9 @@ def predict():
         local_explanation = generate_local_explanation(model, input_array, importances, risk_probability)
         shap_values_result = get_shap_values(model, input_array)
 
-        if not skip_log: log_prediction(features, risk_probability, risk_level, user_id)
+        if not skip_log: 
+            # Loglama işlemini asenkron hale getirerek tahmin süresini kısaltıyoruz
+            threading.Thread(target=log_prediction, args=(features, risk_probability, risk_level, user_id)).start()
 
         return jsonify({
             "prediction": prediction,
@@ -397,8 +401,19 @@ def clear_logs():
         traceback.print_exc() # Terminalde hatayı detaylı görmek için
         return jsonify({"error": str(e)}), 500
 
+# Global cache for market data (15 minutes)
+_market_data_cache = {
+    "data": None,
+    "timestamp": 0
+}
+
 @app.route('/api/market-data', methods=['GET'])
 def get_market_data():
+    current_time = time.time()
+    # Serve from cache if less than 15 minutes old
+    if _market_data_cache["data"] and (current_time - _market_data_cache["timestamp"] < 900):
+        return jsonify(_market_data_cache["data"]), 200
+
     try:
         api_key = os.getenv("TCMB_API_KEY")
         if not api_key:
@@ -431,17 +446,23 @@ def get_market_data():
                         eur_data = json.loads(response.read().decode())
                         latest_eur = eur_data['chart']['result'][0]['meta']['regularMarketPrice']
                         
-                    return jsonify({
+                    result_data = {
                         "USD": f"{latest_usd:.2f}",
                         "EUR": f"{latest_eur:.2f}",
                         "FAIZ": "50.00"
-                    }), 200
+                    }
+                    _market_data_cache["data"] = result_data
+                    _market_data_cache["timestamp"] = current_time
+                    return jsonify(result_data), 200
                 except Exception as e:
-                    return jsonify({
+                    result_data = {
                         "USD": "46.34",
                         "EUR": "53.38",
                         "FAIZ": "50.00"
-                    }), 200
+                    }
+                    _market_data_cache["data"] = result_data
+                    _market_data_cache["timestamp"] = current_time
+                    return jsonify(result_data), 200
 
             
         items = data.get('items', [])
@@ -461,11 +482,15 @@ def get_market_data():
             if latest_usd and latest_eur and latest_faiz:
                 break
                 
-        return jsonify({
+        result_data = {
             "USD": latest_usd if latest_usd else "32.50",
             "EUR": latest_eur if latest_eur else "35.20",
             "FAIZ": latest_faiz if latest_faiz else "50.0"
-        }), 200
+        }
+        
+        _market_data_cache["data"] = result_data
+        _market_data_cache["timestamp"] = current_time
+        return jsonify(result_data), 200
         
     except Exception as e:
         print("TCMB API Error:", traceback.format_exc())

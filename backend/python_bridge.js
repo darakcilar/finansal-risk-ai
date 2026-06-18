@@ -15,6 +15,9 @@ const http = require('http');
 const PYTHON_HOST = process.env.PYTHON_HOST || '127.0.0.1';
 const PYTHON_PORT = process.env.PYTHON_PORT || 5002;
 
+// Keep-Alive bağlantısı oluşturarak her istekte yaşanan TCP tokalaşma gecikmesini (handshake latency) engelleriz.
+const keepAliveAgent = new http.Agent({ keepAlive: true, maxSockets: 100 });
+
 /**
  * Send a request to the Python ML service
  * @param {string} method - HTTP method
@@ -31,6 +34,7 @@ function callPython(method, path, body = null) {
       port: PYTHON_PORT,
       path: path,
       method: method,
+      agent: keepAliveAgent, // Keep-alive agent kullanılıyor
       headers: {
         'Content-Type': 'application/json',
         ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {}),
