@@ -10,6 +10,7 @@ Loads the trained model and exposes REST API endpoints for:
   - /api/login            → admin paneli için güvenli giriş kontrolü
 """
 
+import psycopg2
 import os
 import traceback
 import joblib
