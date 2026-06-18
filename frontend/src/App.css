@@ -575,12 +575,14 @@
   /* FORMLAR İÇİN BÜYÜK DOKUNMA ALANLARI VE YAKINLAŞTIRMA (ZOOM) ENGELLEYİCİ */
   input[type="text"], input[type="number"], input[type="email"], input[type="password"], select {
     font-size: 16px !important; /* iOS oto-zoom'u engeller */
-    padding: 16px 14px !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+    padding-right: 14px !important;
     height: 52px !important; /* Native uygulama yüksekliği */
   }
 
-  .form-input {
-    padding-left: 48px !important; /* İkon ile metnin üst üste gelmesini engeller */
+  input.form-input {
+    padding-left: 48px !important; /* İkon ile metnin üst üste gelmesini KESİN OLARAK engeller */
   }
 
   button {

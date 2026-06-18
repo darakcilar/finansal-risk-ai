@@ -113,18 +113,20 @@ export default function Dashboard() {
         handleLogout={handleLogout} 
       />
 
-      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {isMobile && (
-             <button onClick={() => setIsDrawerOpen(true)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', padding: 0 }}>
-               <Menu size={28} />
-             </button>
-          )}
           <div>
             <h2 className="dashboard-greeting">Merhaba,</h2>
             <h1 className="dashboard-name">{user.name}</h1>
           </div>
         </div>
+        
+        {isMobile && (
+             <button onClick={() => setIsDrawerOpen(true)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', padding: 0 }}>
+               <Menu size={32} />
+             </button>
+        )}
+        
         {!isMobile && (
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <Link to="/settings" className="btn-logout" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'var(--border-glass)' }}>
