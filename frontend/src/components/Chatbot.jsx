@@ -79,13 +79,16 @@ export default function Chatbot({ user, apiBase }) {
           overflow: hidden;
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
           .chat-modal-window {
             bottom: 0;
             right: 0;
             width: 100%;
-            height: 70vh;
-            border-radius: 1rem 1rem 0 0;
+            height: 100dvh;
+            max-height: 100dvh;
+            border-radius: 0;
+            border: none;
+            padding-bottom: env(safe-area-inset-bottom);
           }
           .chat-fab-bubble {
             bottom: 1rem !important;
