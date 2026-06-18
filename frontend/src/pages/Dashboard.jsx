@@ -123,13 +123,17 @@ export default function Dashboard() {
       />
 
       {isMobile ? (
-        <header className="dashboard-header" style={{ width: '100%', marginBottom: '1.5rem', display: 'block' }}>
-          <button onClick={() => setIsDrawerOpen(true)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: 0, marginBottom: '20px' }}>
+        <header className="dashboard-header" style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <button 
+            className="no-mobile-full"
+            onClick={() => setIsDrawerOpen(true)} 
+            style={{ display: 'flex', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', padding: 0, marginBottom: '20px' }}
+          >
             <Menu size={32} />
           </button>
           <h2 className="dashboard-greeting" style={{ margin: 0, color: 'var(--sky-blue)', fontSize: '1.15rem' }}>Merhaba,</h2>
           <h1 className="dashboard-name" style={{ margin: '5px 0 10px 0', fontSize: '2.2rem', fontWeight: 800 }}>{user.name}</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Bugün risk analizi yapmak için harika bir gün!</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', margin: 0, textAlign: 'left' }}>Bugün risk analizi yapmak için harika bir gün!</p>
         </header>
       ) : (
         <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
