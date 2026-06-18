@@ -135,7 +135,7 @@ function RiskForm({ onSubmit, loading }) {
 
   return (
     <div className="glass-card">
-      <div className="fast-fill-container" style={{ display: 'flex', gap: '10px', marginBottom: '24px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Hızlı Doldur:</span>
         <button 
           type="button" 
@@ -156,7 +156,7 @@ function RiskForm({ onSubmit, loading }) {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {/* --- KREDİ KARTI BİLGİLERİ (Hesaplama için iki ayrı alan) --- */}
-        <div className="form-grid-2">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-primary)' }}>💳 Güncel Kart Borcu (₺)</label>
             <input type="number" name="creditCardBalance" value={formData.creditCardBalance} onChange={handleChange} onWheel={handleWheel} required placeholder="Örn: 2500" min="0" />
@@ -169,7 +169,7 @@ function RiskForm({ onSubmit, loading }) {
         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '-12px' }}>Kredi kartı kullanım oranınız arka planda otomatik hesaplanacaktır.</p>
 
         {/* --- GELİR VE BORÇ BİLGİLERİ (Hesaplama için iki ayrı alan) --- */}
-        <div className="form-grid-2">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-primary)' }}>💰 Aylık Net Gelir (₺)</label>
             <input type="number" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleChange} onWheel={handleWheel} required placeholder="Örn: 35000" min="0" />
@@ -187,7 +187,7 @@ function RiskForm({ onSubmit, loading }) {
           <input type="number" name="age" value={formData.age} onChange={handleChange} onWheel={handleWheel} required placeholder="Müşterinin yaşı" min="18" max="120" />
         </div>
 
-        <div className="form-grid-3">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-primary)' }}>⏰ 30-59 Gün Gecikme</label>
             <input type="number" name="late3059" value={formData.late3059} onChange={handleChange} onWheel={handleWheel} min="0" title="Son 2 yılda 30-59 gün arası gecikme sayısı" />
@@ -202,7 +202,7 @@ function RiskForm({ onSubmit, loading }) {
           </div>
         </div>
 
-        <div className="form-grid-2">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-primary)' }}>📑 Açık Kredi/Kart Sayısı</label>
             <input type="number" name="openCreditLines" value={formData.openCreditLines} onChange={handleChange} onWheel={handleWheel} required min="0" />
