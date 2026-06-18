@@ -115,17 +115,16 @@ export default function Dashboard() {
 
       <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div>
-            <h2 className="dashboard-greeting">Merhaba,</h2>
-            <h1 className="dashboard-name">{user.name}</h1>
+          {isMobile && (
+             <button onClick={() => setIsDrawerOpen(true)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', padding: 0 }}>
+               <Menu size={28} />
+             </button>
+          )}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0.5rem' }}>
+            <h2 className="dashboard-greeting" style={{ margin: 0 }}>Merhaba,</h2>
+            <h1 className="dashboard-name" style={{ margin: 0, wordBreak: 'break-word' }}>{user.name}</h1>
           </div>
         </div>
-        
-        {isMobile && (
-             <button onClick={() => setIsDrawerOpen(true)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', padding: 0 }}>
-               <Menu size={32} />
-             </button>
-        )}
         
         {!isMobile && (
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
