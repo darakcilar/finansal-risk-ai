@@ -175,6 +175,31 @@ def auth_login():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/api/users", methods=["GET"])
+def get_all_users():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"users": []})
+    
+    try:
+        c = get_db_cursor(conn)
+        c.execute("SELECT id, name, email, created_at FROM users ORDER BY created_at DESC")
+        users = c.fetchall()
+        
+        user_list = []
+        for u in users:
+            user_list.append({
+                "id": u["id"],
+                "name": u["name"],
+                "email": u["email"],
+                "created_at": u["created_at"]
+            })
+            
+        conn.close()
+        return jsonify({"success": True, "users": user_list})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route("/api/auth/change-password", methods=["POST"])
 def auth_change_password():
     try:

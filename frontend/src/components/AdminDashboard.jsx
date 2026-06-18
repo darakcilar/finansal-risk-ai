@@ -4,10 +4,11 @@ import TrainingStatsView from './TrainingStatsView'; // Eğitim İstatistikleri 
 
 function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
   const [logs, setLogs] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(alreadyLoggedIn);
   const [credentials, setCredentials] = useState({ username: '', password: '' });
-  const [isClearing] = useState(false); // Silme animasyonu için state
+  const [isClearing] = useState(false);
 
   // Konsoldan durumu izlemek için koruma logu
   console.log("🔐 Admin Giriş Kontrolü (isLoggedIn):", isLoggedIn);
@@ -35,8 +36,8 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
 
   useEffect(() => {
     if (isLoggedIn) {
-      // eslint-disable-next-line react-hooks/immutability
       fetchLogs();
+      fetchUsers();
     }
   }, [isLoggedIn, apiBase]);
 
@@ -57,6 +58,17 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
         console.error("Log çekme hatası:", err);
         setLoading(false);
       });
+  };
+
+  const fetchUsers = () => {
+    fetch(`${apiBase}/users`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.success && Array.isArray(data.users)) {
+          setUsers(data.users);
+        }
+      })
+      .catch(err => console.error("Kullanıcıları çekerken hata:", err));
   };
 
   const handleClearLogs = async () => {
@@ -226,6 +238,41 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
                   <Line type="monotone" dataKey="r" name="Risk %" stroke="#38bdf8" strokeWidth={3} dot={{ r: 5, fill: '#0f172a' }} />
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* KAYITLI KULLANICILAR TABLOSU */}
+          <div className="admin-section-box" style={{ marginTop: '30px', background: '#1e293b', padding: '25px', borderRadius: '15px' }}>
+            <h3 style={{ marginTop: 0, color: '#38bdf8', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span>👥</span> Sistemdeki Kayıtlı Kullanıcılar
+            </h3>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', color: '#f8fafc', fontSize: '14px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8' }}>
+                    <th style={{ padding: '12px', paddingLeft: 0 }}>ID</th>
+                    <th style={{ padding: '12px' }}>Ad Soyad</th>
+                    <th style={{ padding: '12px' }}>E-posta</th>
+                    <th style={{ padding: '12px' }}>Kayıt Tarihi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '20px 0', textAlign: 'center', color: '#64748b' }}>Henüz kayıtlı kullanıcı yok.</td>
+                    </tr>
+                  ) : (
+                    users.map(u => (
+                      <tr key={u.id} style={{ borderBottom: '1px solid rgba(51, 65, 85, 0.5)' }}>
+                        <td style={{ padding: '12px', paddingLeft: 0, color: '#94a3b8' }}>#{u.id}</td>
+                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{u.name}</td>
+                        <td style={{ padding: '12px', color: '#cbd5e1' }}>{u.email}</td>
+                        <td style={{ padding: '12px', color: '#64748b' }}>{new Date(u.created_at).toLocaleString('tr-TR')}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </>
