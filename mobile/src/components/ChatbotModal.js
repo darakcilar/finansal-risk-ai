@@ -4,6 +4,13 @@ import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, RADIUS, SHADOWS } from '../theme/colors';
 
+const SUGGESTIONS = [
+  "Bana tavsiye ver",
+  "Kredi çekmeli miyim?",
+  "Risk durumum nasıl?",
+  "Yeni analiz yap"
+];
+
 export default function ChatbotModal({ isVisible, onClose, userId, apiBase }) {
   const navigation = useNavigation();
   const [messages, setMessages] = useState([
@@ -21,12 +28,13 @@ export default function ChatbotModal({ isVisible, onClose, userId, apiBase }) {
     }
   }, [isVisible, messages]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSend = async (textOverride = null) => {
+    const textToSend = textOverride || input;
+    if (!textToSend.trim()) return;
 
-    const userMessage = input.trim();
+    const userMessage = textToSend.trim();
     setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
-    setInput('');
+    if (!textOverride) setInput('');
     setIsLoading(true);
 
     try {
@@ -114,6 +122,33 @@ export default function ChatbotModal({ isVisible, onClose, userId, apiBase }) {
               </View>
             )}
           </ScrollView>
+
+          {messages.length === 1 && (
+            <View style={{ borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.05)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 15, paddingVertical: 10, gap: 10 }}
+              >
+                {SUGGESTIONS.map((s, i) => (
+                  <TouchableOpacity 
+                    key={i}
+                    onPress={() => handleSend(s)}
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.05)',
+                      borderColor: 'rgba(255,255,255,0.1)',
+                      borderWidth: 1,
+                      paddingVertical: 8,
+                      paddingHorizontal: 14,
+                      borderRadius: 20,
+                    }}
+                  >
+                    <Text style={{ color: COLORS.textMuted, fontSize: 13, fontWeight: '500' }}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           <View style={styles.inputContainer}>
             <TextInput
