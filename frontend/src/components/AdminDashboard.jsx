@@ -240,43 +240,43 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
               </ResponsiveContainer>
             </div>
           </div>
-
-          {/* KAYITLI KULLANICILAR TABLOSU */}
-          <div className="admin-section-box" style={{ marginTop: '30px', background: '#1e293b', padding: '25px', borderRadius: '15px' }}>
-            <h3 style={{ marginTop: 0, color: '#38bdf8', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span>👥</span> Sistemdeki Kayıtlı Kullanıcılar
-            </h3>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', color: '#f8fafc', fontSize: '14px', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8' }}>
-                    <th style={{ padding: '12px', paddingLeft: 0 }}>ID</th>
-                    <th style={{ padding: '12px' }}>Ad Soyad</th>
-                    <th style={{ padding: '12px' }}>E-posta</th>
-                    <th style={{ padding: '12px' }}>Kayıt Tarihi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" style={{ padding: '20px 0', textAlign: 'center', color: '#64748b' }}>Henüz kayıtlı kullanıcı yok.</td>
-                    </tr>
-                  ) : (
-                    users.map(u => (
-                      <tr key={u.id} style={{ borderBottom: '1px solid rgba(51, 65, 85, 0.5)' }}>
-                        <td style={{ padding: '12px', paddingLeft: 0, color: '#94a3b8' }}>#{u.id}</td>
-                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{u.name}</td>
-                        <td style={{ padding: '12px', color: '#cbd5e1' }}>{u.email}</td>
-                        <td style={{ padding: '12px', color: '#64748b' }}>{new Date(u.created_at).toLocaleString('tr-TR')}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </>
       )}
+
+      {/* KAYITLI KULLANICILAR TABLOSU (HER ZAMAN GÖRÜNÜR) */}
+      <div className="admin-section-box" style={{ marginTop: '30px', background: '#1e293b', padding: '25px', borderRadius: '15px' }}>
+        <h3 style={{ marginTop: 0, color: '#38bdf8', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span>👥</span> Sistemdeki Kayıtlı Kullanıcılar
+        </h3>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', color: '#f8fafc', fontSize: '14px', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8' }}>
+                <th style={{ padding: '12px', paddingLeft: 0 }}>ID</th>
+                <th style={{ padding: '12px' }}>Ad Soyad</th>
+                <th style={{ padding: '12px' }}>E-posta</th>
+                <th style={{ padding: '12px' }}>Kayıt Tarihi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan="4" style={{ padding: '20px 0', textAlign: 'center', color: '#64748b' }}>Henüz kayıtlı kullanıcı yok.</td>
+                </tr>
+              ) : (
+                users.map(u => (
+                  <tr key={u.id} style={{ borderBottom: '1px solid rgba(51, 65, 85, 0.5)' }}>
+                    <td style={{ padding: '12px', paddingLeft: 0, color: '#94a3b8' }}>#{u.id}</td>
+                    <td style={{ padding: '12px', fontWeight: 'bold' }}>{u.name}</td>
+                    <td style={{ padding: '12px', color: '#cbd5e1' }}>{u.email}</td>
+                    <td style={{ padding: '12px', color: '#64748b' }}>{new Date(u.created_at).toLocaleString('tr-TR')}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* YAPAY ZEKA MODEL EĞİTİM TEMELLERİ (MLOPS VIEW) */}
       <div className="admin-section-box" style={{ marginTop: '20px', paddingTop: '30px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
