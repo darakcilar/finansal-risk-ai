@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { LogOut, Download, Clock, ArrowRight, Activity, Settings as SettingsIcon, Menu } from 'lucide-react';
 import AdminDashboard from '../components/AdminDashboard';
 import WebDrawerMenu from '../components/WebDrawerMenu';
+import Chatbot from '../components/Chatbot';
 import { generateFullRiskReportPDF } from '../utils/pdfGenerator';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -328,6 +329,9 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      
+      {/* AI Chatbot Assistant */}
+      <Chatbot user={user} apiBase={API_BASE} />
     </div>
   );
 }

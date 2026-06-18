@@ -582,8 +582,42 @@ def get_market_data():
         
     except Exception as e:
         print("TCMB API Error:", traceback.format_exc())
-        return jsonify({"error": str(e)}), 500
+from chatbot import generate_chatbot_response
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.json
+    user_id = data.get("user_id")
+    message = data.get("message", "")
     
+    if not message:
+        return jsonify({"error": "Mesaj boş olamaz."}), 400
+
+    conn = get_db_connection()
+    user_analysis = None
+    if conn and user_id:
+        try:
+            c = conn.cursor()
+            c.execute('''
+                SELECT risk_probability, risk_level, features_json 
+                FROM predictions 
+                WHERE user_id = %s 
+                ORDER BY timestamp DESC LIMIT 1
+            ''', (user_id,))
+            row = c.fetchone()
+            if row:
+                user_analysis = {
+                    "risk_probability": row[0],
+                    "risk_level": row[1],
+                    "features_json": row[2]
+                }
+            conn.close()
+        except Exception as e:
+            print("DB Fetch Error:", e)
+
+    response_text = generate_chatbot_response(message, user_analysis)
+    return jsonify({"reply": response_text}), 200
+
 if __name__ == "__main__":
     flask_port = int(os.environ.get("PYTHON_PORT", 5002))
     flask_host = os.environ.get("PYTHON_HOST", "127.0.0.1")

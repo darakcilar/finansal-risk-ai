@@ -4,10 +4,14 @@ import * as Haptics from 'expo-haptics';
 import { COLORS, RADIUS, SHADOWS } from '../theme/colors';
 import { AuthContext } from '../context/AuthContext';
 import DrawerMenu from '../components/DrawerMenu';
+import ChatbotModal from '../components/ChatbotModal';
+
+const API_BASE = 'https://finansal-risk-ai.onrender.com/api';
 
 export default function DashboardScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleNewAnalysis = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -65,6 +69,28 @@ export default function DashboardScreen({ navigation }) {
         </View>
 
       </ScrollView>
+
+      {/* Floating Action Button for Chatbot */}
+      {!isChatOpen && (
+        <TouchableOpacity 
+          style={styles.chatFab} 
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setIsChatOpen(true);
+          }}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.chatFabIcon}>💬</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Chatbot Modal */}
+      <ChatbotModal 
+        isVisible={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+        userId={user?.id}
+        apiBase={API_BASE}
+      />
     </SafeAreaView>
   );
 }
@@ -85,5 +111,21 @@ const styles = StyleSheet.create({
   iconWrapper: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center', marginBottom: 15 },
   bigActionIcon: { fontSize: 35 },
   bigActionTitle: { color: COLORS.textPrimary, fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
-  bigActionDesc: { color: COLORS.textSecondary, fontSize: 14, textAlign: 'center', paddingHorizontal: 10 }
+  bigActionDesc: { color: COLORS.textSecondary, fontSize: 14, textAlign: 'center', paddingHorizontal: 10 },
+  chatFab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.skyBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.lg,
+    zIndex: 99,
+  },
+  chatFabIcon: {
+    fontSize: 28,
+  }
 });
