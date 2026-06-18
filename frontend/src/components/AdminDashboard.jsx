@@ -200,7 +200,7 @@ function AdminDashboard({ onBack, apiBase = '/api', alreadyLoggedIn = false }) {
           </div>
 
           {/* GRAFİKLER */}
-          <div style={{ display: 'flex', gap: '25px', height: '350px', marginBottom: '40px' }}>
+          <div className="admin-charts-container">
             <div style={{ flex: 1, background: '#1e293b', padding: '25px', borderRadius: '15px' }}>
               <h3 style={{ marginTop: 0, color: '#94a3b8', marginBottom: '20px' }}>Risk Seviyesi Dağılımı</h3>
               <ResponsiveContainer width="100%" height="90%">

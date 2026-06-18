@@ -252,6 +252,144 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* ---- Form Grids ---- */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+/* ---- SHAP Chart Premium UI ---- */
+.shap-container {
+  margin-bottom: 24px;
+}
+.shap-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.shap-icon {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-glow-blue);
+}
+.shap-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.15rem;
+}
+.shap-header p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.shap-chart-area {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.shap-row {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.shap-feature-name {
+  width: 40%;
+  text-align: right;
+  padding-right: 16px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.shap-bar-container {
+  width: 60%;
+  display: flex;
+  align-items: center;
+}
+.shap-bar-half {
+  width: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.shap-bar-half.left {
+  justify-content: flex-end;
+}
+.shap-bar-half.right {
+  justify-content: flex-start;
+}
+.shap-center-line {
+  width: 2px;
+  height: 24px;
+  background-color: var(--text-muted);
+  margin: 0 12px;
+  flex-shrink: 0;
+  opacity: 0.5;
+  border-radius: 2px;
+}
+.shap-bar {
+  height: 14px;
+  transition: width 0.8s ease-out;
+}
+.shap-bar.green {
+  background: linear-gradient(90deg, transparent, var(--accent-green));
+  border-radius: 6px 0 0 6px;
+  box-shadow: var(--shadow-glow-green);
+}
+.shap-bar.red {
+  background: linear-gradient(90deg, var(--accent-red), transparent);
+  border-radius: 0 6px 6px 0;
+  box-shadow: var(--shadow-glow-red);
+}
+.shap-value {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.shap-value.green {
+  color: var(--accent-green);
+}
+.shap-value.red {
+  color: var(--accent-red);
+}
+.shap-footer {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 24px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.green-text {
+  color: var(--accent-green);
+}
+.red-text {
+  color: var(--accent-red);
+}
+
+/* ---- Admin Charts ---- */
+.admin-charts-container {
+  display: flex;
+  gap: 25px;
+  height: 350px;
+  margin-bottom: 40px;
+}
+
 /* ==========================================================================
    📱 MOBİL UYUM (RESPONSIVE DESIGN) - KESİN ÇÖZÜM
 ========================================================================== */
@@ -320,13 +458,49 @@
     gap: 12px !important;
   }
 
+  .form-grid-2,
+  .form-grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .fast-fill-container {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
   /* SİSTEM YÖNETİCİSİ (ADMIN) EKRANI MOBİL DÜZELTMELERİ */
   .admin-dashboard { padding: 10px !important; }
   
-  .admin-stats-grid, .stats-container, .dashboard-cards {
+  .admin-stats-grid, .stats-container, .dashboard-cards, .admin-charts-container {
     display: flex !important;
     flex-direction: column !important;
     gap: 15px !important;
+  }
+  
+  .admin-charts-container {
+    height: auto !important;
+  }
+  
+  .admin-charts-container > div {
+    height: 300px !important;
+  }
+
+  /* SHAP CHART MOBİL DÜZELTMELERİ */
+  .shap-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .shap-feature-name {
+    width: 100% !important;
+    text-align: center !important;
+    padding-right: 0 !important;
+    white-space: normal !important;
+  }
+  .shap-bar-container {
+    width: 100% !important;
   }
   
   .admin-table-wrapper {
