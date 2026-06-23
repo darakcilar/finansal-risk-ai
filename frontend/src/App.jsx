@@ -17,7 +17,7 @@ import Stats from './pages/Stats';
 import FormPage from './pages/FormPage';
 
 // ==========================================================================
-// 🚀 YENİ: İLK AÇILIŞ (COLD START) AKILLI YÜKLEME EKRANI
+// 🚀 YENİ: İLK AÇILIŞ (COLD START) AKILLI YÜKLEME EKRANI (GERÇEKÇİ SÜRELER)
 // ==========================================================================
 const InitialLoadingScreen = () => {
   const [seconds, setSeconds] = useState(0);
@@ -29,22 +29,51 @@ const InitialLoadingScreen = () => {
     return () => clearInterval(interval);
   }, []);
 
-  let timeStatus = "Sunucu bağlantısı kuruluyor... ~3 sn";
-  if (seconds >= 3 && seconds < 10) {
-    timeStatus = `Yapay zeka motoru (Cold Start) uyandırılıyor... (${seconds} sn)`;
-  } else if (seconds >= 10 && seconds < 20) {
-    timeStatus = `Modeller belleğe yükleniyor, az kaldı... (${seconds} sn)`;
-  } else if (seconds >= 20) {
-    timeStatus = `Sunucu hazırlanıyor, lütfen sayfadan ayrılmayın... (${seconds} sn)`;
+  // 🚀 Gerçekçi Render (Cold Start) ve ML Modeli Yükleme Süreleri
+  let timeStatus = "Sunucuya uyanma sinyali gönderiliyor..."; 
+  
+  if (seconds >= 5 && seconds < 15) {
+    timeStatus = `Yapay zeka motoru (Cold Start) başlatılıyor... (${seconds} sn)`;
+  } else if (seconds >= 15 && seconds < 30) {
+    timeStatus = `Model ağırlıkları (Random Forest) belleğe yükleniyor... (${seconds} sn)`;
+  } else if (seconds >= 30 && seconds < 45) {
+    timeStatus = `XAI (SHAP) motoru hazırlanıyor, az kaldı... (${seconds} sn)`;
+  } else if (seconds >= 45) {
+    timeStatus = `Sistem son ayarlarını yapıyor, lütfen ayrılmayın... (${seconds} sn)`;
   }
 
   return (
-    <div className="min-h-screen bg-[#050a1a] flex flex-col items-center justify-center text-white">
-      {/* Tailwind CSS ile oluşturulmuş dönen şık çember (Spinner) */}
-      <div className="w-12 h-12 border-4 border-[#38bdf8]/20 border-t-[#38bdf8] rounded-full animate-spin mb-6"></div>
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+      backgroundColor: '#0f172a', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', zIndex: 9999
+    }}>
+      {/* Dönen Çember (Spinner) Animasyonu */}
+      <style>
+        {`@keyframes spin-loader { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}
+      </style>
+      <div style={{
+        width: '55px', height: '55px',
+        border: '4px solid rgba(56, 189, 248, 0.15)',
+        borderTop: '4px solid #38bdf8',
+        borderRadius: '50%',
+        marginBottom: '25px',
+        animation: 'spin-loader 1s linear infinite'
+      }}></div>
       
-      <h2 className="text-2xl font-bold text-white mb-2 tracking-wide">Finansal Risk AI</h2>
-      <p className="text-[#94a3b8] italic text-sm transition-all duration-300">
+      <h2 style={{ 
+        color: '#ffffff', fontSize: '26px', fontWeight: 'bold', 
+        margin: '0 0 12px 0', letterSpacing: '1px', fontFamily: 'sans-serif'
+      }}>
+        Finansal Risk AI
+      </h2>
+      
+      <p style={{
+        color: seconds >= 30 ? '#f59e0b' : '#94a3b8',
+        fontSize: '15px', fontStyle: 'italic', margin: 0,
+        transition: 'color 0.3s ease', fontFamily: 'sans-serif',
+        textAlign: 'center', maxWidth: '80%'
+      }}>
         {timeStatus}
       </p>
     </div>
