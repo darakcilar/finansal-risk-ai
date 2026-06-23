@@ -1,5 +1,11 @@
-import psycopg2
-import psycopg2.extras
+try:
+    import psycopg2 # pyright: ignore[reportMissingModuleSource]
+    import psycopg2.extras # pyright: ignore[reportMissingModuleSource]
+except ImportError:
+    psycopg2 = None
+    psycopg2_extras = None
+    print("❌ psycopg2 paketi bulunamadı. Lütfen `pip install psycopg2-binary` komutunu çalıştırın.")
+
 import json
 from datetime import datetime
 import os

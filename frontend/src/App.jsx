@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,11 +16,48 @@ import MarketData from './pages/MarketData';
 import Stats from './pages/Stats';
 import FormPage from './pages/FormPage';
 
+// ==========================================================================
+// 🚀 YENİ: İLK AÇILIŞ (COLD START) AKILLI YÜKLEME EKRANI
+// ==========================================================================
+const InitialLoadingScreen = () => {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  let timeStatus = "Sunucu bağlantısı kuruluyor... ~3 sn";
+  if (seconds >= 3 && seconds < 10) {
+    timeStatus = `Yapay zeka motoru (Cold Start) uyandırılıyor... (${seconds} sn)`;
+  } else if (seconds >= 10 && seconds < 20) {
+    timeStatus = `Modeller belleğe yükleniyor, az kaldı... (${seconds} sn)`;
+  } else if (seconds >= 20) {
+    timeStatus = `Sunucu hazırlanıyor, lütfen sayfadan ayrılmayın... (${seconds} sn)`;
+  }
+
+  return (
+    <div className="min-h-screen bg-[#050a1a] flex flex-col items-center justify-center text-white">
+      {/* Tailwind CSS ile oluşturulmuş dönen şık çember (Spinner) */}
+      <div className="w-12 h-12 border-4 border-[#38bdf8]/20 border-t-[#38bdf8] rounded-full animate-spin mb-6"></div>
+      
+      <h2 className="text-2xl font-bold text-white mb-2 tracking-wide">Finansal Risk AI</h2>
+      <p className="text-[#94a3b8] italic text-sm transition-all duration-300">
+        {timeStatus}
+      </p>
+    </div>
+  );
+};
+// ==========================================================================
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user, isLoading } = useContext(AuthContext);
   
-  if (isLoading) return <div className="min-h-screen bg-[#050a1a] flex items-center justify-center text-white">Yükleniyor...</div>;
+  // 🚀 SABİT YAZI YERİNE AKILLI SAYAÇ EKLENDİ
+  if (isLoading) return <InitialLoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   
   if (!user.hasSeenOnboarding) {
@@ -34,7 +71,8 @@ const ProtectedRoute = ({ children }) => {
 const AuthRoute = ({ children }) => {
   const { user, isLoading } = useContext(AuthContext);
   
-  if (isLoading) return <div className="min-h-screen bg-[#050a1a] flex items-center justify-center text-white">Yükleniyor...</div>;
+  // 🚀 SABİT YAZI YERİNE AKILLI SAYAÇ EKLENDİ
+  if (isLoading) return <InitialLoadingScreen />;
   if (user) {
     if (!user.hasSeenOnboarding) return <Navigate to="/onboarding" replace />;
     return <Navigate to="/dashboard" replace />;
