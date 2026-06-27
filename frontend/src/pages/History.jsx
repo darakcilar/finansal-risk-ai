@@ -1,8 +1,8 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, History as HistoryIcon, Download } from 'lucide-react';
+import { History as HistoryIcon, Download } from 'lucide-react';
 import { generateFullRiskReportPDF } from '../utils/pdfGenerator';
 
 const API_BASE = 'https://finansal-risk-ai.onrender.com/api';

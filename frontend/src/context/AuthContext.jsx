@@ -1,32 +1,18 @@
-import React, { createContext, useState, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useState, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
 const API_BASE = 'https://finansal-risk-ai.onrender.com/api'; // Canlı sunucu
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async () => {
-    try {
-      const userData = localStorage.getItem('@web_user') || sessionStorage.getItem('@web_user');
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        // Refresh history from DB
-        await fetchUserHistory(parsedUser.id);
-      }
-    } catch (e) {
-      console.error("User check error:", e);
-    } finally {
-      setIsLoading(false);
-    }
+  const getStoredUser = () => {
+    const userData = localStorage.getItem('@web_user') || sessionStorage.getItem('@web_user');
+    return userData ? JSON.parse(userData) : null;
   };
+
+  const [user, setUser] = useState(getStoredUser);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserHistory = async (userId) => {
     try {
@@ -39,6 +25,17 @@ export const AuthProvider = ({ children }) => {
       console.error("History fetch error:", e);
     }
   };
+
+  useEffect(() => {
+    const initializeUser = async () => {
+      if (user) {
+        await fetchUserHistory(user.id);
+      }
+      setIsLoading(false);
+    };
+
+    initializeUser();
+  }, []);
 
   const login = async (email, password, role = 'user', rememberMe = false) => {
     try {
@@ -62,7 +59,8 @@ export const AuthProvider = ({ children }) => {
       } else {
         return { success: false, error: data.error || 'Giriş başarısız' };
       }
-    } catch (e) {
+    } catch (error) {
+      console.error('Login error:', error);
       return { success: false, error: 'Sunucu bağlantı hatası' };
     }
   };
@@ -84,7 +82,8 @@ export const AuthProvider = ({ children }) => {
       } else {
         return { success: false, error: data.error || 'Kayıt başarısız' };
       }
-    } catch (e) {
+    } catch (error) {
+      console.error('Register error:', error);
       return { success: false, error: 'Sunucu bağlantı hatası' };
     }
   };

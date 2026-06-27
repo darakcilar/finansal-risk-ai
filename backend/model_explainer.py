@@ -4,7 +4,6 @@ Explainable AI (XAI) Module
 Provides feature importance, decision path, local explanation,
 and SHAP values utilities for the trained risk model.
 """
-
 import numpy as np
 import shap  
 import traceback
@@ -113,9 +112,7 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
     if feature_importances and len(feature_importances) > 0:
         top_feature_label = feature_importances[0]["label"]
 
-    # =========================================================================
     # DİNAMİK XAI YÖNETİCİ ÖZETİ (KİŞİSELLEŞTİRİLMİŞ METİN ÜRETİMİ)
-    # =========================================================================
     xai_advice = f"Sayın {user_name}, " if user_name else ""
     
     # 1. Giriş Cümlesi (Gerçek Yüzdelik Oran ile)
@@ -166,9 +163,8 @@ def generate_local_explanation(model, input_array, feature_importances, predicti
         short_summary = "✅ Düşük risk profili. Finansal durumunuz genel standartlara göre sağlıklı görünüyor."
 
 
-    # =========================================================================
     # JAVASCRIPT KURAL MOTORUNUN PYTHON'A BİREBİR ÇEVRİLMİŞ HALİ
-    # =========================================================================
+
     risk_factors = []
     positive_factors = []
 

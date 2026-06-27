@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeft, Save, Lock } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -8,7 +8,6 @@ const API_BASE = 'https://finansal-risk-ai.onrender.com/api';
 
 export default function Settings() {
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -53,7 +52,7 @@ export default function Settings() {
       } else {
         setMessage({ type: 'error', text: data.error || 'Şifre değiştirme başarısız.' });
       }
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Sunucu bağlantı hatası.' });
     } finally {
       setLoading(false);

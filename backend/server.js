@@ -14,8 +14,6 @@ const cors = require('cors');
 const { callPython, PYTHON_PORT } = require('./python_bridge');
 const { generateRecommendations } = require('./recommendations');
 
-// DİKKAT: Eski xai_nlg.js importunu tamamen sildik çünkü 
-// artık gerçek ve dinamik XAI metni Python'dan (SHAP ile) hazır geliyor!
 
 const app = express();
 

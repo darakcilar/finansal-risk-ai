@@ -1,5 +1,5 @@
 """
-Finansal Risk AI — Flask Backend
+Finansal Risk AI — Flask Backend (Lazy Load Optimized)
 ---------------------------------
 Loads the trained model and exposes REST API endpoints for:
   - /api/predict          → risk prediction + probability + SHAP values + DB Logging
@@ -44,74 +44,87 @@ from db_logger import init_db, log_prediction, get_db_connection, get_db_cursor
 init_db()
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "advanced_risk_model.joblib")
 
-print(f"📦 Model yükleniyor: {MODEL_PATH}")
-try:
-    model = joblib.load(MODEL_PATH)
-    print(f"✅ Model başarıyla yüklendi: {type(model).__name__}")
-except Exception as e:
-    print(f"❌ Model yüklenemedi: {e}")
-    model = None
-
-
-# Fonksiyonlar Model Yüklendikten SONRA tanımlanmalı
+# ==========================================
+# 🚀 LAZY LOADING (TEMBEL YÜKLEME) MİMARİSİ
+# ==========================================
+# Modeli uygulamanın en başında yüklemek yerine BOŞ bırakıyoruz.
+# Böylece Flask sunucusu saniyeler içinde anında başlar ve Render'ı (Cold Start) bekletmez.
+GLOBAL_MODEL = None
 _cached_importance = None
+_model_load_error = None
+
+def get_model():
+    """Modeli sadece ilk tahmin isteği geldiğinde (veya ilk ihtiyaç anında) yükleyen akıllı fonksiyon."""
+    global GLOBAL_MODEL, _cached_importance, _model_load_error
+    
+    if GLOBAL_MODEL is None and _model_load_error is None:
+        print(f"📦 Model ilk istek için RAM'e yükleniyor (Lazy Load): {MODEL_PATH}")
+        try:
+            GLOBAL_MODEL = joblib.load(MODEL_PATH)
+            print(f"✅ Model başarıyla yüklendi: {type(GLOBAL_MODEL).__name__}")
+            
+            # 🔥 GÜVENLİ WARM-UP (ISINMA TURU) 🔥
+            print("🔥 Yapay Zeka ve SHAP motoru ısınma turuna başlıyor...")
+            dummy_input = np.zeros((1, 10))
+            GLOBAL_MODEL.predict(dummy_input)
+            if hasattr(GLOBAL_MODEL, "predict_proba"):
+                GLOBAL_MODEL.predict_proba(dummy_input)
+                
+            _cached_importance = get_feature_importance(GLOBAL_MODEL)
+            get_shap_values(GLOBAL_MODEL, dummy_input)
+            print("🚀 Sistem tamamen hazır!")
+        except Exception as e:
+            _model_load_error = str(e)
+            print(f"❌ Model yüklenemedi: {e}")
+            
+    if _model_load_error:
+        raise Exception(f"Model yükleme hatası: {_model_load_error}")
+        
+    return GLOBAL_MODEL
 
 def _get_importance():
     global _cached_importance
-    if _cached_importance is None and model is not None:
-        _cached_importance = get_feature_importance(model)
+    if _cached_importance is None:
+        m = get_model() # Modeli yüklediğinden emin ol
+        if m:
+            _cached_importance = get_feature_importance(m)
     return _cached_importance or []
-
-
-# ==========================================
-# 🔥 GÜVENLİ WARM-UP (ISINMA TURU) 🔥
-# ==========================================
-# Isınma turu fonksiyonlardan SONRA çağrılıyor ki NameError vermesin
-if model is not None:
-    try:
-        print("🔥 Yapay Zeka ve SHAP motoru ısınma turuna başlıyor...")
-        
-        # 1. Sahte bir veri (0'lardan oluşan) hazırlıyoruz
-        dummy_input = np.zeros((1, 10))
-        
-        # 2. Tahmin (Predict) fonksiyonlarını önden çalıştırıyoruz
-        model.predict(dummy_input)
-        if hasattr(model, "predict_proba"):
-            model.predict_proba(dummy_input)
-            
-        # 3. En ağırı olan SHAP motorunu ilk kez burada tetikliyoruz
-        _get_importance()
-        get_shap_values(model, dummy_input)
-        
-        print("🚀 Sistem tamamen hazır! Kullanıcılar için ilk bekleme süresi SIFIRLANDI.")
-    except Exception as e:
-        print(f"⚠️ Isınma turu atlandı (Sistem normal çalışmaya devam edecek): {e}")
 # ==========================================
 
 
 @app.route("/api/health", methods=["GET"])
 def health():
+    # Sadece durum bilgisini veriyoruz, burada get_model() ÇAĞIRMIYORUZ ki sunucu uyanık kalsın.
     return jsonify({
         "status": "ok",
-        "model_loaded": model is not None,
-        "model_type": type(model).__name__ if model else None,
+        "model_loaded": GLOBAL_MODEL is not None,
+        "model_type": type(GLOBAL_MODEL).__name__ if GLOBAL_MODEL else None,
+        "lazy_load_enabled": True
     })
-
 
 @app.route("/api/feature-names", methods=["GET"])
 def feature_names():
     features = []
-    names = list(model.feature_names_in_) if model and hasattr(model, "feature_names_in_") else FEATURE_NAMES
+    try:
+        model = get_model()
+        names = list(model.feature_names_in_) if model and hasattr(model, "feature_names_in_") else FEATURE_NAMES
+    except:
+        names = FEATURE_NAMES
+        
     for name in names:
         features.append({"name": name, "label": FEATURE_LABELS_TR.get(name, name)})
     return jsonify({"features": features})
 
-
 @app.route("/api/feature-importance", methods=["GET"])
 def feature_importance():
-    if model is None: return jsonify({"error": "Model yüklenmedi"}), 500
-    return jsonify({"importances": _get_importance()})
+    try:
+        get_model() # Eğer yüklenmediyse yüklemeyi tetikler
+        return jsonify({"importances": _get_importance()})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
+
+# ─── KULLANICI & KİMLİK DOĞRULAMA (MODEL GEREKTİRMEZ) ───
 
 @app.route("/api/auth/register", methods=["POST"])
 def auth_register():
@@ -301,9 +314,15 @@ def get_user_history():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# ─── TAHMİN (PREDICT) & AÇIKLAMA UÇ NOKTALARI (MODEL BURADA TETİKLENİR) ───
+
 @app.route("/api/predict", methods=["POST"])
 def predict():
-    if model is None: return jsonify({"error": "Model yüklenmedi"}), 500
+    try:
+        model = get_model() # Tembel yüklemeyi tetikliyoruz
+    except Exception as e:
+        return jsonify({"error": f"Model yüklenemedi: {str(e)}"}), 500
 
     try:
         data = request.get_json()
@@ -376,7 +395,11 @@ def predict():
 
 @app.route("/api/explain", methods=["POST"])
 def explain():
-    if model is None: return jsonify({"error": "Model yüklenmedi"}), 500
+    try:
+        model = get_model() # Tembel yüklemeyi tetikliyoruz
+    except Exception as e:
+        return jsonify({"error": f"Model yüklenemedi: {str(e)}"}), 500
+        
     try:
         data = request.get_json()
         features = data.get("features", {})
@@ -424,7 +447,9 @@ def explain():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Açıklama hatası: {str(e)}"}), 500
-    
+
+
+# ─── LOGLAR & MARKET DATASI (MODEL GEREKTİRMEZ) ───
     
 @app.route("/api/admin/training-stats", methods=["GET"])
 def get_training_stats():
@@ -444,7 +469,6 @@ def get_training_stats():
         })
     except Exception as e:
         return jsonify({"error": f"Eğitim verileri yüklenemedi: {str(e)}"}), 500
-
 
 @app.route("/api/logs", methods=["GET"])
 def get_logs():
@@ -468,7 +492,6 @@ def get_logs():
     except Exception as e:
         return jsonify({"error": f"Loglar okunamadı: {str(e)}"}), 500
 
-# 🚀 YENİ: Veritabanındaki tüm kayıtları kalıcı olarak silme uç noktası
 @app.route('/api/logs', methods=['DELETE', 'OPTIONS'])
 def clear_logs():
     if request.method == 'OPTIONS':
@@ -486,7 +509,7 @@ def clear_logs():
         
         return jsonify({"message": "Tüm kayıtlar başarıyla silindi."}), 200
     except Exception as e:
-        traceback.print_exc() # Terminalde hatayı detaylı görmek için
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # Global cache for market data (15 minutes)
@@ -551,7 +574,6 @@ def get_market_data():
                     _market_data_cache["data"] = result_data
                     _market_data_cache["timestamp"] = current_time
                     return jsonify(result_data), 200
-
             
         items = data.get('items', [])
         
@@ -582,6 +604,8 @@ def get_market_data():
         
     except Exception as e:
         print("TCMB API Error:", traceback.format_exc())
+        return jsonify({"error": "Piyasa verileri çekilemedi"}), 500
+
 from chatbot import generate_chatbot_response
 
 @app.route("/api/chat", methods=["POST"])
