@@ -1,17 +1,22 @@
 """
-Finansal Risk AI — Flask Backend (Lazy Load Optimized)
-------------------------------------------------------
-Loads the trained model and exposes REST API endpoints for:
-
-- /api/predict              → risk prediction + probability + SHAP values + DB logging
-- /api/feature-importance   → global feature importances
-- /api/explain              → local explanation for a single customer
-- /api/logs                 → admin paneli için son denetim kayıtları
-- /api/logs                 → DELETE ile eski kayıtları temizleme
-- /api/auth/register        → kullanıcı kayıt
-- /api/auth/login           → kullanıcı / admin giriş
-- /api/user/history         → kullanıcı geçmiş analizleri
-- /api/chat                 → finansal asistan
+Finansal Risk AI — Flask Backend
+--------------------------------
+REST API endpoints:
+- /api/health
+- /api/warmup
+- /api/predict
+- /api/explain
+- /api/feature-importance
+- /api/feature-names
+- /api/auth/register
+- /api/auth/login
+- /api/auth/change-password
+- /api/users
+- /api/user/history
+- /api/admin/training-stats
+- /api/logs
+- /api/market-data
+- /api/chat
 """
 
 import os
@@ -46,10 +51,8 @@ from db_logger import (
     get_db_cursor,
 )
 
+from chatbot import generate_chatbot_response
 
-# ─────────────────────────────────────────────
-# APP CONFIG
-# ─────────────────────────────────────────────
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -63,11 +66,6 @@ MODEL_PATH = os.path.join(
     "advanced_risk_model.joblib"
 )
 
-
-# ─────────────────────────────────────────────
-# LAZY LOADING
-# ─────────────────────────────────────────────
-
 GLOBAL_MODEL = None
 _cached_importance = None
 _model_load_error = None
@@ -76,20 +74,19 @@ _model_load_error = None
 def get_model():
     """
     Modeli sadece ilk ihtiyaç anında yükler.
-    Böylece Render cold-start süresi azalır.
+    SHAP burada özellikle çalıştırılmaz.
+    Böylece model yükleme daha hafif kalır.
     """
     global GLOBAL_MODEL, _cached_importance, _model_load_error
 
     if GLOBAL_MODEL is None and _model_load_error is None:
-        print(f"Model ilk istek için RAM'e yükleniyor: {MODEL_PATH}")
+        print(f"Model RAM'e yükleniyor: {MODEL_PATH}")
 
         try:
             GLOBAL_MODEL = joblib.load(MODEL_PATH)
             print(f"✅ Model başarıyla yüklendi: {type(GLOBAL_MODEL).__name__}")
 
-            print("Yapay Zeka ve SHAP motoru ısınma turuna başlıyor...")
-
-            dummy_input = np.zeros((1, 10))
+            dummy_input = np.zeros((1, len(FEATURE_NAMES)))
 
             GLOBAL_MODEL.predict(dummy_input)
 
@@ -97,9 +94,8 @@ def get_model():
                 GLOBAL_MODEL.predict_proba(dummy_input)
 
             _cached_importance = get_feature_importance(GLOBAL_MODEL)
-            get_shap_values(GLOBAL_MODEL, dummy_input)
 
-            print("✅ Sistem tamamen hazır.")
+            print("✅ Model temel kullanım için hazır.")
 
         except Exception as e:
             _model_load_error = str(e)
@@ -113,9 +109,6 @@ def get_model():
 
 
 def _get_importance():
-    """
-    Modelin global feature importance değerlerini cache üzerinden döndürür.
-    """
     global _cached_importance
 
     if _cached_importance is None:
@@ -145,9 +138,6 @@ def _build_input_array(model, features):
 
 
 def _get_user_name(user_id):
-    """
-    user_id varsa veritabanından kullanıcı adını getirir.
-    """
     if not user_id:
         return None
 
@@ -174,9 +164,6 @@ def _get_user_name(user_id):
 
 
 def _risk_label_from_probability(risk_probability):
-    """
-    Risk olasılığına göre risk seviyesi ve Türkçe etiket döndürür.
-    """
     if risk_probability >= 0.7:
         return "high", "Yüksek Risk"
 
@@ -186,15 +173,11 @@ def _risk_label_from_probability(risk_probability):
     return "low", "Düşük Risk"
 
 
-# ─────────────────────────────────────────────
-# BASIC ENDPOINTS
-# ─────────────────────────────────────────────
-
 @app.route("/api/health", methods=["GET"])
 def health():
     """
-    Health endpoint model yüklemesini tetiklemez.
-    Render üzerinde servis uyanık kalsın diye hafif tutulmuştur.
+    Hafif sağlık kontrolü.
+    Model yüklemesini tetiklemez.
     """
     return jsonify({
         "status": "ok",
@@ -202,6 +185,44 @@ def health():
         "model_type": type(GLOBAL_MODEL).__name__ if GLOBAL_MODEL else None,
         "lazy_load_enabled": True,
     })
+
+
+@app.route("/api/warmup", methods=["GET"])
+def warmup():
+    """
+    Render cold start sonrası modeli ve SHAP motorunu önceden hazırlar.
+    UptimeRobot / cron-job.org veya frontend açılışında çağrılabilir.
+    """
+    try:
+        model = get_model()
+
+        dummy_input = np.zeros((1, len(FEATURE_NAMES)))
+
+        model.predict(dummy_input)
+
+        if hasattr(model, "predict_proba"):
+            model.predict_proba(dummy_input)
+
+        _get_importance()
+
+        # SHAP motorunu burada ısıtıyoruz.
+        # Bu işlem /api/health içinde yapılmaz.
+        get_shap_values(model, dummy_input)
+
+        return jsonify({
+            "status": "ready",
+            "model_loaded": GLOBAL_MODEL is not None,
+            "model_type": type(GLOBAL_MODEL).__name__ if GLOBAL_MODEL else None,
+            "message": "Backend, model ve XAI motoru hazır.",
+        }), 200
+
+    except Exception as e:
+        traceback.print_exc()
+
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+        }), 500
 
 
 @app.route("/api/feature-names", methods=["GET"])
@@ -228,20 +249,23 @@ def feature_names():
 def feature_importance():
     try:
         get_model()
-        return jsonify({"importances": _get_importance()})
+
+        return jsonify({
+            "importances": _get_importance()
+        })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        traceback.print_exc()
 
+        return jsonify({
+            "error": str(e)
+        }), 500
 
-# ─────────────────────────────────────────────
-# AUTH ENDPOINTS
-# ─────────────────────────────────────────────
 
 @app.route("/api/auth/register", methods=["POST"])
 def auth_register():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
 
         name = data.get("name")
         email = data.get("email")
@@ -277,6 +301,7 @@ def auth_register():
             )
 
             user_id = c.fetchone()["id"]
+
             conn.commit()
             conn.close()
 
@@ -311,7 +336,7 @@ def auth_register():
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
 
         email = data.get("email")
         password = data.get("password")
@@ -352,7 +377,11 @@ def auth_login():
                 "error": "Hatalı yönetici girişi"
             }), 401
 
-        c.execute("SELECT * FROM users WHERE email = %s", (email,))
+        c.execute(
+            "SELECT * FROM users WHERE email = %s",
+            (email,)
+        )
+
         user = c.fetchone()
         conn.close()
 
@@ -384,7 +413,7 @@ def auth_login():
 @app.route("/api/auth/change-password", methods=["POST"])
 def auth_change_password():
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
 
         user_id = data.get("user_id")
         old_password = data.get("old_password")
@@ -405,7 +434,12 @@ def auth_change_password():
             }), 500
 
         c = get_db_cursor(conn)
-        c.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+
+        c.execute(
+            "SELECT * FROM users WHERE id = %s",
+            (user_id,)
+        )
+
         user = c.fetchone()
 
         if user and check_password_hash(user["password_hash"], old_password):
@@ -437,16 +471,15 @@ def auth_change_password():
         }), 500
 
 
-# ─────────────────────────────────────────────
-# USER ADMIN ENDPOINTS
-# ─────────────────────────────────────────────
-
 @app.route("/api/users", methods=["GET"])
 def get_all_users():
     conn = get_db_connection()
 
     if not conn:
-        return jsonify({"success": True, "users": []})
+        return jsonify({
+            "success": True,
+            "users": []
+        })
 
     try:
         c = get_db_cursor(conn)
@@ -535,7 +568,7 @@ def update_user(user_id):
         }), 500
 
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
 
         name = data.get("name")
         email = data.get("email")
@@ -632,12 +665,10 @@ def get_user_history():
     except Exception as e:
         traceback.print_exc()
 
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": str(e)
+        }), 500
 
-
-# ─────────────────────────────────────────────
-# PREDICT & EXPLAIN
-# ─────────────────────────────────────────────
 
 @app.route("/api/predict", methods=["POST"])
 def predict():
@@ -650,14 +681,14 @@ def predict():
         }), 500
 
     try:
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
 
         if "features" not in data:
             return jsonify({
                 "error": "Geçersiz istek. 'features' alanı gerekli."
             }), 400
 
-        features = data["features"] or {}
+        features = dict(data["features"] or {})
 
         skip_log = features.pop("__skip_log", False) or data.get("skip_log", False)
         user_id = data.get("user_id", None)
@@ -676,12 +707,8 @@ def predict():
 
         decision_path = get_decision_path(model, input_array)
         importances = _get_importance()
-
         user_name = _get_user_name(user_id)
 
-        # ÖNEMLİ DÜZELTME:
-        # Önce kullanıcının gerçek SHAP değerleri hesaplanıyor.
-        # Sonra açıklama metni bu SHAP sonucuna göre üretiliyor.
         shap_values_result = get_shap_values(model, input_array)
 
         local_explanation = generate_local_explanation(
@@ -696,7 +723,8 @@ def predict():
         if not skip_log:
             threading.Thread(
                 target=log_prediction,
-                args=(features, risk_probability, risk_level, user_id)
+                args=(features, risk_probability, risk_level, user_id),
+                daemon=True
             ).start()
 
         return jsonify({
@@ -731,8 +759,8 @@ def explain():
         }), 500
 
     try:
-        data = request.get_json() or {}
-        features = data.get("features", {}) or {}
+        data = request.get_json(silent=True) or {}
+        features = dict(data.get("features", {}) or {})
 
         input_array = _build_input_array(model, features)
 
@@ -748,8 +776,6 @@ def explain():
         user_id = data.get("user_id", None)
         user_name = _get_user_name(user_id)
 
-        # ÖNEMLİ DÜZELTME:
-        # Açıklama üretilmeden önce SHAP değerleri hesaplanıyor.
         shap_values_result = get_shap_values(model, input_array)
 
         local_explanation = generate_local_explanation(
@@ -778,10 +804,6 @@ def explain():
             "error": f"Açıklama hatası: {str(e)}"
         }), 500
 
-
-# ─────────────────────────────────────────────
-# TRAINING STATS
-# ─────────────────────────────────────────────
 
 @app.route("/api/admin/training-stats", methods=["GET"])
 def get_training_stats():
@@ -831,14 +853,12 @@ def get_training_stats():
         })
 
     except Exception as e:
+        traceback.print_exc()
+
         return jsonify({
             "error": f"Eğitim verileri yüklenemedi: {str(e)}"
         }), 500
 
-
-# ─────────────────────────────────────────────
-# LOG ENDPOINTS
-# ─────────────────────────────────────────────
 
 @app.route("/api/logs", methods=["GET"])
 def get_logs():
@@ -908,17 +928,56 @@ def clear_logs():
     except Exception as e:
         traceback.print_exc()
 
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": str(e)
+        }), 500
 
-
-# ─────────────────────────────────────────────
-# MARKET DATA
-# ─────────────────────────────────────────────
 
 _market_data_cache = {
     "data": None,
     "timestamp": 0,
 }
+
+
+def _get_market_data_from_yahoo(current_time):
+    try:
+        usd_req = urllib.request.Request(
+            "https://query1.finance.yahoo.com/v8/finance/chart/USDTRY=X",
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+
+        with urllib.request.urlopen(usd_req) as response:
+            usd_data = json.loads(response.read().decode())
+
+        latest_usd = usd_data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+
+        eur_req = urllib.request.Request(
+            "https://query1.finance.yahoo.com/v8/finance/chart/EURTRY=X",
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+
+        with urllib.request.urlopen(eur_req) as response:
+            eur_data = json.loads(response.read().decode())
+
+        latest_eur = eur_data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+
+        result_data = {
+            "USD": f"{latest_usd:.2f}",
+            "EUR": f"{latest_eur:.2f}",
+            "FAIZ": "50.00",
+        }
+
+    except Exception:
+        result_data = {
+            "USD": "46.34",
+            "EUR": "53.38",
+            "FAIZ": "50.00",
+        }
+
+    _market_data_cache["data"] = result_data
+    _market_data_cache["timestamp"] = current_time
+
+    return result_data
 
 
 @app.route("/api/market-data", methods=["GET"])
@@ -998,60 +1057,9 @@ def get_market_data():
         }), 500
 
 
-def _get_market_data_from_yahoo(current_time):
-    """
-    TCMB API Render gibi datacenter IP'lerinden HTML dönerse Yahoo Finance fallback kullanılır.
-    """
-    try:
-        usd_req = urllib.request.Request(
-            "https://query1.finance.yahoo.com/v8/finance/chart/USDTRY=X",
-            headers={"User-Agent": "Mozilla/5.0"}
-        )
-
-        with urllib.request.urlopen(usd_req) as response:
-            usd_data = json.loads(response.read().decode())
-
-        latest_usd = usd_data["chart"]["result"][0]["meta"]["regularMarketPrice"]
-
-        eur_req = urllib.request.Request(
-            "https://query1.finance.yahoo.com/v8/finance/chart/EURTRY=X",
-            headers={"User-Agent": "Mozilla/5.0"}
-        )
-
-        with urllib.request.urlopen(eur_req) as response:
-            eur_data = json.loads(response.read().decode())
-
-        latest_eur = eur_data["chart"]["result"][0]["meta"]["regularMarketPrice"]
-
-        result_data = {
-            "USD": f"{latest_usd:.2f}",
-            "EUR": f"{latest_eur:.2f}",
-            "FAIZ": "50.00",
-        }
-
-    except Exception:
-        result_data = {
-            "USD": "46.34",
-            "EUR": "53.38",
-            "FAIZ": "50.00",
-        }
-
-    _market_data_cache["data"] = result_data
-    _market_data_cache["timestamp"] = current_time
-
-    return result_data
-
-
-# ─────────────────────────────────────────────
-# CHATBOT
-# ─────────────────────────────────────────────
-
-from chatbot import generate_chatbot_response
-
-
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
 
     user_id = data.get("user_id")
     message = data.get("message", "")
@@ -1066,7 +1074,7 @@ def chat():
 
     if conn and user_id:
         try:
-            c = conn.cursor()
+            c = get_db_cursor(conn)
 
             c.execute(
                 """
@@ -1083,9 +1091,9 @@ def chat():
 
             if row:
                 user_analysis = {
-                    "risk_probability": row[0],
-                    "risk_level": row[1],
-                    "features_json": row[2],
+                    "risk_probability": row["risk_probability"],
+                    "risk_level": row["risk_level"],
+                    "features_json": row["features_json"],
                 }
 
             conn.close()
@@ -1110,10 +1118,6 @@ def chat():
         "reply": response_data
     }), 200
 
-
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
 
 if __name__ == "__main__":
     flask_port = int(os.environ.get("PYTHON_PORT", 5002))
