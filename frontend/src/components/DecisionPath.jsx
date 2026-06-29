@@ -1,126 +1,193 @@
 import { useState } from 'react';
 
 function DecisionPath({ explanations, summary, decisionPath }) {
-  // Ağaç algoritması başlangıçta gizli
   const [isTreeOpen, setIsTreeOpen] = useState(false);
 
   if (!explanations || explanations.length === 0) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
-      {/* 1. KISIM: İnsani Açıklamalar (Hep Açık Kalacak) */}
-      <div className="glass-card">
-        <div className="section-header" style={{ marginBottom: '20px' }}>
-          <div className="section-icon" style={{ background: 'var(--gradient-purple)', width: '40px', height: '40px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-          </div>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Neden Bu Sonuç?</h3>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Modelin kararını etkileyen temel faktörler</p>
-          </div>
+    <div className="glass-card" style={{ marginTop: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div
+          style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            border: '1px solid rgba(96,165,250,0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#93c5fd',
+            fontSize: '1.3rem',
+          }}
+        >
+          ⓘ
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {explanations.map((exp, idx) => {
-            const isCritical = exp.impact === 'critical';
-            const isIncrease = exp.direction === 'increase';
-            
-            let borderColor = 'rgba(255,255,255,0.1)';
-            let iconColor = 'var(--text-secondary)';
-            
-            if (isCritical) {
-              borderColor = 'rgba(252, 129, 129, 0.3)';
-              iconColor = 'var(--accent-red)';
-            } else if (isIncrease) {
-              borderColor = 'rgba(246, 173, 85, 0.3)';
-              iconColor = 'var(--accent-orange)';
-            } else {
-              borderColor = 'rgba(104, 211, 145, 0.3)';
-              iconColor = 'var(--accent-green)';
-            }
-
-            return (
-              <div key={idx} style={{ padding: '16px', background: 'var(--bg-glass)', borderLeft: `4px solid ${borderColor}`, borderRadius: 'var(--radius-sm)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{ color: iconColor }}>
-                    {isCritical ? '🚨' : isIncrease ? '⚠️' : '✅'}
-                  </span>
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                    {exp.label} {isIncrease ? '↑' : '↓'}
-                  </strong>
-                </div>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                  {exp.message}
-                </p>
-              </div>
-            );
-          })}
+        <div>
+          <h3 style={{ margin: 0, color: '#f8fafc' }}>Neden Bu Sonuç?</h3>
+          <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.9rem' }}>
+            Modelin kararını etkileyen temel faktörler
+          </p>
         </div>
       </div>
 
-      {/* 2. KISIM: Teknik Karar Ağacı (Açılır/Kapanır) */}
-      {decisionPath && decisionPath.length > 0 && (
-        <div className="glass-card" style={{ padding: isTreeOpen ? '24px' : '16px 24px', transition: 'all 0.3s ease' }}>
-          
-          {/* Tıklanabilir Ağaç Başlığı */}
-          <div 
-            onClick={() => setIsTreeOpen(!isTreeOpen)}
-            style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div className="section-icon" style={{ background: 'transparent', border: '1px solid var(--border-glass)', width: '40px', height: '40px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                </svg>
-              </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>Yapay Zeka Karar Ağacı (İleri Düzey)</h3>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Matematiksel eşik değerleri ve algoritma yolu</p>
-              </div>
-            </div>
-            
-            {/* Dönen Ok İkonu */}
-            <div style={{ padding: '8px', background: 'var(--bg-glass)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg
-                width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                style={{ transform: isTreeOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', color: 'var(--text-secondary)' }}
+      <div style={{ display: 'grid', gap: '0.9rem' }}>
+        {explanations.map((exp, idx) => {
+          const isIncrease = exp.direction === 'increase';
+          const isCritical = exp.impact === 'critical';
+
+          const title =
+            exp.label ||
+            exp.feature ||
+            exp.raw_feature ||
+            `Faktör ${idx + 1}`;
+
+          const message =
+            exp.message ||
+            exp.description ||
+            'Bu değişken model kararında etkili olmuştur.';
+
+          const value =
+            typeof exp.value === 'number'
+              ? exp.value.toFixed(4)
+              : exp.value;
+
+          let borderColor = 'rgba(255,255,255,0.1)';
+          let iconColor = 'var(--text-secondary)';
+          let icon = 'ℹ️';
+
+          if (isCritical) {
+            borderColor = 'rgba(252, 129, 129, 0.35)';
+            iconColor = 'var(--accent-red)';
+            icon = '🚨';
+          } else if (isIncrease) {
+            borderColor = 'rgba(246, 173, 85, 0.35)';
+            iconColor = 'var(--accent-orange)';
+            icon = '⚠️';
+          } else {
+            borderColor = 'rgba(104, 211, 145, 0.35)';
+            iconColor = 'var(--accent-green)';
+            icon = '✅';
+          }
+
+          return (
+            <div
+              key={idx}
+              style={{
+                borderLeft: `4px solid ${borderColor}`,
+                background: 'rgba(30, 41, 59, 0.65)',
+                borderRadius: '10px',
+                padding: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.4rem',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '1rem',
+                }}
               >
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                    color: '#f8fafc',
+                    fontWeight: 700,
+                  }}
+                >
+                  <span style={{ color: iconColor }}>{icon}</span>
+                  <span>{title}</span>
+                </div>
+
+                <span
+                  style={{
+                    color: isIncrease ? '#fbbf24' : '#22c55e',
+                    fontWeight: 800,
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  {isIncrease ? '↑' : '↓'}
+                </span>
+              </div>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: '#cbd5e1',
+                  fontSize: '0.92rem',
+                  lineHeight: 1.55,
+                }}
+              >
+                {message}
+              </p>
+
+              {value !== undefined && (
+                <small style={{ color: '#94a3b8' }}>
+                  SHAP katkı değeri: {value}
+                </small>
+              )}
             </div>
+          );
+        })}
+      </div>
+
+      {decisionPath && decisionPath.length > 0 && (
+        <div style={{ marginTop: '1.5rem' }}>
+          <div
+            onClick={() => setIsTreeOpen(!isTreeOpen)}
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'rgba(15, 23, 42, 0.65)',
+              border: '1px solid rgba(148, 163, 184, 0.18)',
+              borderRadius: '12px',
+              padding: '1rem',
+            }}
+          >
+            <div>
+              <h3 style={{ margin: 0, color: '#f8fafc' }}>
+                Yapay Zeka Karar Ağacı (İleri Düzey)
+              </h3>
+              <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.9rem' }}>
+                Matematiksel eşik değerleri ve algoritma yolu
+              </p>
+            </div>
+
+            <span style={{ color: '#cbd5e1', fontSize: '1.2rem' }}>
+              {isTreeOpen ? '▲' : '▼'}
+            </span>
           </div>
 
-          {/* Açılır Ağaç İçeriği */}
           {isTreeOpen && (
-            <div style={{ marginTop: '24px', paddingLeft: '10px', borderLeft: '2px dashed var(--border-glass)', animation: 'fadeIn 0.4s ease' }}>
+            <div style={{ marginTop: '1rem', display: 'grid', gap: '0.75rem' }}>
               {decisionPath.map((step, idx) => (
-                <div key={idx} style={{ position: 'relative', paddingLeft: '20px', paddingBottom: idx === decisionPath.length - 1 ? '0' : '20px' }}>
-                  {/* Ağaç Düğümü (Nokta) */}
-                  <div style={{ 
-                    position: 'absolute', left: '-7px', top: '4px', width: '12px', height: '12px', 
-                    background: step.type === 'leaf' ? 'var(--accent-blue)' : 'var(--bg-primary)', 
-                    border: `2px solid ${step.type === 'leaf' ? 'var(--accent-blue)' : 'var(--text-muted)'}`, 
-                    borderRadius: '50%' 
-                  }}/>
-                  
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Adım {idx + 1}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: step.type === 'leaf' ? 'var(--accent-blue)' : 'var(--text-primary)', fontWeight: step.type === 'leaf' ? '600' : 'normal' }}>
+                <div
+                  key={idx}
+                  style={{
+                    background: 'rgba(30, 41, 59, 0.55)',
+                    border: '1px solid rgba(148, 163, 184, 0.12)',
+                    borderRadius: '10px',
+                    padding: '0.9rem',
+                  }}
+                >
+                  <strong style={{ color: '#93c5fd' }}>Adım {idx + 1}</strong>
+                  <p style={{ margin: '0.4rem 0 0', color: '#cbd5e1' }}>
                     {step.description}
-                  </div>
+                  </p>
                 </div>
               ))}
             </div>
           )}
         </div>
       )}
-
     </div>
   );
 }
